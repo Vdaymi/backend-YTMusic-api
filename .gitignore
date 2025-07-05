@@ -1,0 +1,11 @@
+/.vs
+/YTMusic-api/bin
+/YTMusic-api/obj
+/YTMusicApi.Orchestrator/bin
+/YTMusicApi.Orchestrator/obj
+/YTMusicApi.Model/obj
+/YTMusicApi.Mode;/obj
+/YTMusicApi.Model/bin
+/YTMusicApi.Data/obj
+/YTMusicApi.Data/bin
+YTMusic-api/appsettings.Development.json
