@@ -9,19 +9,22 @@ namespace YTMusicApi.Orchestrator.Playlist
     {
         private readonly IYouTubeRepository _youTubeRepository;
         private readonly IPlaylistRepository _playlistRepository;
-        private readonly IPlaylistTrackOrchestrator _playlitTrackOrchestrator;
+        private readonly IPlaylistTrackRepository _playlitTrackRepository;
         private readonly ITrackRepository _trackRepository;
+        private readonly IPlaylistTrackOrchestrator _playlitTrackOrchestrator;
 
         public PlaylistOrchestrator(
             IYouTubeRepository youTubeRepository,
             IPlaylistRepository playlistRepository,
-            IPlaylistTrackOrchestrator playlistTrackOrchestrator,
-            ITrackRepository trackRepository)
+            IPlaylistTrackRepository playlistTrackRepository,
+            ITrackRepository trackRepository,
+            IPlaylistTrackOrchestrator playlistTrackOrchestrator)
         {
             _youTubeRepository = youTubeRepository;
             _playlistRepository = playlistRepository;
-            _playlitTrackOrchestrator = playlistTrackOrchestrator;
+            _playlitTrackRepository = playlistTrackRepository;
             _trackRepository = trackRepository;
+            _playlitTrackOrchestrator = playlistTrackOrchestrator;
         }
 
         public async Task<PlaylistDto> PostPlaylistAsync(string playlistId)
@@ -38,7 +41,7 @@ namespace YTMusicApi.Orchestrator.Playlist
 
             var youTubeTrackIds = await _youTubeRepository.GetPlaylistVideoIdsAsync(playlistId);
 
-            var dbTrackIds = await _playlitTrackOrchestrator.GetTracksForPlaylistAsync(playlistId);
+            var dbTrackIds = await _playlitTrackRepository.GetTrackIdsByPlaylistAsync(playlistId);
 
             var toAdd = youTubeTrackIds.Except(dbTrackIds).ToList();
             var toRemove = dbTrackIds.Except(youTubeTrackIds).ToList();
