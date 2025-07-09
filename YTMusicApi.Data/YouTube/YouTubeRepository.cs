@@ -71,5 +71,32 @@ namespace YTMusicApi.Data.YouTube
                 ItemCount = (int)playlist.ContentDetails.ItemCount
             };
         }
+        
+        public async Task<List<string>> GetPlaylistVideoIdsAsync(string playlistId)
+        {
+            var videoIds = new List<string>();
+            string nextPageToken = null;
+
+            do
+            {
+                var plRequest = _ytService.PlaylistItems.List("snippet");
+                plRequest.PlaylistId = playlistId;
+                plRequest.MaxResults = 50;
+                plRequest.PageToken = nextPageToken;
+
+                var plResponse = await plRequest.ExecuteAsync();
+                if (plResponse.Items == null) break;
+
+                videoIds.AddRange(plResponse.Items
+                    .Select(item => item.Snippet?.ResourceId?.VideoId)
+                    .Where(id => !string.IsNullOrEmpty(id)));
+
+                nextPageToken = plResponse.NextPageToken;
+            }
+            while (!string.IsNullOrEmpty(nextPageToken));
+
+            return videoIds;
+        }
+
     }
 }

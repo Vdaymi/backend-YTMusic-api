@@ -1,5 +1,6 @@
 ﻿using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
+using YTMusicApi.Data.PlaylistTrack;
 
 namespace YTMusicApi.Data.Playlist
 {
@@ -14,5 +15,7 @@ namespace YTMusicApi.Data.Playlist
         public string СhannelTitle { get; set; }
         [Column("item_count")]
         public int? ItemCount { get; set; }
+
+        public ICollection<PlaylistTrackDao> PlaylistTracks { get; set; } = new List<PlaylistTrackDao>();
     }
 }

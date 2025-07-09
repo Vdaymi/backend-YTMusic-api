@@ -23,7 +23,7 @@ namespace YTMusicApi.Playlist
         }
 
         [HttpGet("{playlistId}")]
-        public async Task<IActionResult> GetByIdAsync(string playlistId)
+        public async Task<IActionResult> GetByIdPlaylistAsync(string playlistId)
         {
             var playlistDto = await _orchestrator.GetByIdPlaylistAsync(playlistId);
             return Ok(playlistDto);

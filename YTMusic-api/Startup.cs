@@ -13,6 +13,8 @@ using YTMusicApi.Orchestrator.Playlist;
 using YTMusicApi.Orchestrator.Track;
 using Microsoft.EntityFrameworkCore;
 using CarsMarket;
+using YTMusicApi.Data.PlaylistTrack;
+using YTMusicApi.Model.PlaylistTrack;
 
 namespace YTMusicApi
 {
@@ -36,8 +38,14 @@ namespace YTMusicApi
             services.AddScoped<IPlaylistOrchestrator, PlaylistOrchestrator>();
             services.AddScoped<IPlaylistRepository, PlaylistRepository>();
             services.AddScoped<IYouTubeRepository, YouTubeRepository>();
+            services.AddScoped<IPlaylistTrackRepository, PlaylistTrackRepository>();
 
-            services.AddAutoMapper(config => config.AddProfiles(new List<Profile> { new TrackDaoProfile(), new PlaylistDaoProfile() }));
+            services.AddAutoMapper(config => config.AddProfiles(new List<Profile> 
+            {   
+                new TrackDaoProfile(), 
+                new PlaylistDaoProfile(),
+                new PlaylistTrackDaoProfile()
+            }));
             
             services.AddDbContext<SqlDbContext>(config => config.UseSqlServer(
                 _configuration.GetConnectionString("DefaultConnection")));
@@ -63,6 +71,7 @@ namespace YTMusicApi
 
             app.UseHttpsRedirection();
 
+            app.UseAuthentication();
             app.UseAuthorization();
             app.UseRouting();
             app.UseEndpoints(action => action.MapControllers());

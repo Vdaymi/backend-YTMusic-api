@@ -1,4 +1,7 @@
-﻿namespace YTMusicApi.Model.Playlist
+﻿using YTMusicApi.Model.PlaylistTrack;
+using YTMusicApi.Model.Track;
+
+namespace YTMusicApi.Model.Playlist
 {
     public interface IPlaylistOrchestrator
     {

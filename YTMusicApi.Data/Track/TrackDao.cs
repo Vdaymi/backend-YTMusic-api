@@ -1,5 +1,6 @@
 ﻿using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
+using YTMusicApi.Data.PlaylistTrack;
 
 namespace YTMusicApi.Data.Track
 {
@@ -22,5 +23,7 @@ namespace YTMusicApi.Data.Track
         public TimeSpan Duration { get; set; }
         [Column("image_url")]
         public string ImageUrl { get; set; }
+
+        public ICollection<PlaylistTrackDao> PlaylistTracks { get; set; } = new List<PlaylistTrackDao>();
     }
 }
