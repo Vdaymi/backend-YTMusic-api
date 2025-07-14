@@ -1,5 +1,6 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using YTMusicApi.Model.Track;
+using YTMusicApi.Track.Contracts;
 
 namespace YTMusicApi.Track
 {
@@ -15,25 +16,11 @@ namespace YTMusicApi.Track
             _orchestrator = orchestrator;
         }
 
-        [HttpPost]
-        public async Task<IActionResult> PostTrackAsync(string trackId)
-        {
-            var trackDto = await _orchestrator.PostTrackAsync(trackId);
-            return Ok(trackDto);
-        }
-
         [HttpGet("{trackId}")]
-        public async Task<IActionResult> GetByIdAsync(string trackId)
+        public async Task<IActionResult> GetByIdAsync([FromRoute] TrackIdRequest request)
         {
-            var trackDto = await _orchestrator.GetByIdTrackAsync(trackId);
+            var trackDto = await _orchestrator.GetByIdTrackAsync(request.TrackId);
             return Ok(trackDto);
-        }
-
-        [HttpPut("{trackId}")]
-        public async Task<IActionResult> UpdateTrackAsync(string trackId)
-        {
-            var updatedTrack = await _orchestrator.UpdateTrackAsync(trackId);
-            return Ok(updatedTrack);
         }
     }
 }

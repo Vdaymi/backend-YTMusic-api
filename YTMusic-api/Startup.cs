@@ -13,6 +13,20 @@ using YTMusicApi.Orchestrator.Playlist;
 using YTMusicApi.Orchestrator.Track;
 using Microsoft.EntityFrameworkCore;
 using CarsMarket;
+using YTMusicApi.Data.PlaylistTrack;
+using YTMusicApi.Model.PlaylistTrack;
+using YTMusicApi.Data.User;
+using YTMusicApi.Orchestrator.PlaylistTrack;
+using YTMusicApi.Model.User;
+using YTMusicApi.Orchestrator.User;
+using YTMusicApi.Model.Auth;
+using YTMusicApi.Platform.Jwt;
+using YTMusicApi.Platform;
+using YTMusicApi.Extensions;
+using Microsoft.AspNetCore.CookiePolicy;
+using YTMusicApi.Model.UserPlaylist;
+using YTMusicApi.Data.UserPlaylist;
+using YTMusicApi.Orchestrator.UserPlaylist;
 
 namespace YTMusicApi
 {
@@ -31,13 +45,38 @@ namespace YTMusicApi
             services.AddEndpointsApiExplorer();
             services.AddSwaggerGen();
 
-            services.AddScoped<ITrackOrchestrator, TrackOrchestrator>();
-            services.AddScoped<ITrackRepository, TrackRepository>();
-            services.AddScoped<IPlaylistOrchestrator, PlaylistOrchestrator>();
-            services.AddScoped<IPlaylistRepository, PlaylistRepository>();
+            services.Configure<JwtOptions>(_configuration.GetSection("JwtOptions"));
+            services.AddApiAuthentication(_configuration);
+
             services.AddScoped<IYouTubeRepository, YouTubeRepository>();
 
-            services.AddAutoMapper(config => config.AddProfiles(new List<Profile> { new TrackDaoProfile(), new PlaylistDaoProfile() }));
+            services.AddScoped<ITrackOrchestrator, TrackOrchestrator>();
+            services.AddScoped<ITrackRepository, TrackRepository>();
+
+            services.AddScoped<IPlaylistOrchestrator, PlaylistOrchestrator>();
+            services.AddScoped<IPlaylistRepository, PlaylistRepository>();
+
+          
+            services.AddScoped<IPlaylistTrackRepository, PlaylistTrackRepository>();
+            services.AddScoped<IPlaylistTrackOrchestrator, PlaylistTrackOrchestrator>();
+
+            services.AddScoped<IUserRepository, UserRepository>();
+            services.AddScoped<IUserOrchestrator, UserOrchestrator>();
+            
+            services.AddScoped<IUserPlaylistRepository, UserPlaylistRepository>();
+            services.AddScoped<IUserPlaylistOrchestrator, UserPlaylistOrchestrator>();
+
+            services.AddScoped<IJwtProvider, JwtProvider>();
+            services.AddScoped<IPasswordHasher, PasswordHasher>();
+
+            services.AddAutoMapper(config => config.AddProfiles(new List<Profile> 
+            {   
+                new TrackDaoProfile(), 
+                new PlaylistDaoProfile(),
+                new PlaylistTrackDaoProfile(),
+                new UserDaoProfile(),
+                new UserPlaylistDaoProfile()
+            }));
             
             services.AddDbContext<SqlDbContext>(config => config.UseSqlServer(
                 _configuration.GetConnectionString("DefaultConnection")));
@@ -63,8 +102,17 @@ namespace YTMusicApi
 
             app.UseHttpsRedirection();
 
-            app.UseAuthorization();
             app.UseRouting();
+
+            app.UseCookiePolicy(new CookiePolicyOptions
+            {
+                MinimumSameSitePolicy = SameSiteMode.Strict,
+                Secure = CookieSecurePolicy.Always,
+                HttpOnly = HttpOnlyPolicy.Always
+            });
+            app.UseAuthentication();
+            app.UseAuthorization();
+
             app.UseEndpoints(action => action.MapControllers());
         }
     }

@@ -16,15 +16,6 @@ namespace YTMusicApi.Orchestrator.Track
             _youTubeRepository = youTubeRepository;
         }
 
-        public async Task<TrackDto> PostTrackAsync(string trackId)
-        {
-            var track = await _youTubeRepository.GetTrackAsync(trackId);
-            if (track == null)
-            {
-                throw new ArgumentNullException("Track not found in YouTobe Music.");
-            }
-            return await _trackRepository.PostTrackAsync(track);
-        }
         public async Task<TrackDto> GetByIdTrackAsync(string trackId)
         {
             var track = await _trackRepository.GetByIdTrackAsync(trackId);
@@ -33,15 +24,6 @@ namespace YTMusicApi.Orchestrator.Track
                 throw new ArgumentNullException("Track not found in the database.");
             }
             return track;
-        }
-        public async Task<TrackDto> UpdateTrackAsync(string trackId)
-        {
-            var track = await _youTubeRepository.GetTrackAsync(trackId);
-            if (track == null)
-            {
-                throw new ArgumentNullException("Track not found in YouTobe Music.");
-            }
-            return await _trackRepository.UpdateTrackAsync(track);
         }
     }
 }
