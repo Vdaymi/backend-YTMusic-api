@@ -1,5 +1,7 @@
-﻿using Microsoft.AspNetCore.Mvc;
+﻿using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Mvc;
 using YTMusicApi.Model.Playlist;
+using YTMusicApi.Playlist.Contracts;
 
 namespace YTMusicApi.Playlist
 {
@@ -15,24 +17,28 @@ namespace YTMusicApi.Playlist
             _orchestrator = orchestrator;
         }
 
-        [HttpPost]
-        public async Task<IActionResult> PostPlaylistAsync(string playlistId)
-        {
-            var playlistDto = await _orchestrator.PostPlaylistAsync(playlistId);
+        [HttpPost, Authorize]
+        public async Task<IActionResult> PostPlaylistAsync([FromRoute] PlaylistIdRequest request)
+       {
+            var userIdClaim = User.FindFirst("userId");
+            
+            var userId = Guid.Parse(userIdClaim.Value);
+
+            var playlistDto = await _orchestrator.PostPlaylistAsync(request.PlaylistId, userId);
             return Ok(playlistDto);
         }
 
-        [HttpGet("{playlistId}")]
-        public async Task<IActionResult> GetByIdPlaylistAsync(string playlistId)
+        [HttpGet("{playlistId}"), Authorize]
+        public async Task<IActionResult> GetByIdPlaylistAsync([FromRoute] PlaylistIdRequest request)
         {
-            var playlistDto = await _orchestrator.GetByIdPlaylistAsync(playlistId);
+            var playlistDto = await _orchestrator.GetByIdPlaylistAsync(request.PlaylistId);
             return Ok(playlistDto);
         }
 
-        [HttpPut("{playlistId}")]
-        public async Task<IActionResult> UpdatePlaylistAsync(string playlistId)
+        [HttpPut("{playlistId}"), Authorize]
+        public async Task<IActionResult> UpdatePlaylistAsync([FromRoute] PlaylistIdRequest request)
         {
-            var updatedPlaylist = await _orchestrator.UpdatePlaylistAsync(playlistId);
+            var updatedPlaylist = await _orchestrator.UpdatePlaylistAsync(request.PlaylistId);
             return Ok(updatedPlaylist);
         }
     } 

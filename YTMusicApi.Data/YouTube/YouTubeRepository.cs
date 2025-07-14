@@ -43,16 +43,16 @@ namespace YTMusicApi.Data.YouTube
             request.Id = string.Join(",", trackIds);
             var response = await request.ExecuteAsync();
 
-            return response.Items.Select(video => new TrackDto
+            return response.Items.Select(track => new TrackDto
             {
-                TrackId = video.Id,
-                CategoryId = int.Parse(video.Snippet.CategoryId),
-                Title = video.Snippet.Title,
-                ChannelTitle = video.Snippet.ChannelTitle,
-                ViewCount = (long)video.Statistics.ViewCount,
-                LikeCount = (long)video.Statistics.LikeCount,
-                Duration = XmlConvert.ToTimeSpan(video.ContentDetails.Duration),
-                ImageUrl = video.Snippet.Thumbnails.Standard.Url
+                TrackId = track.Id,
+                CategoryId = int.Parse(track.Snippet.CategoryId),
+                Title = track.Snippet.Title,
+                ChannelTitle = track.Snippet.ChannelTitle,
+                ViewCount = (long)track.Statistics.ViewCount,
+                LikeCount = (long)track.Statistics.LikeCount,
+                Duration = XmlConvert.ToTimeSpan(track.ContentDetails.Duration),
+                ImageUrl = track.Snippet.Thumbnails.Standard.Url
             }).ToList();
         }
 
@@ -71,8 +71,23 @@ namespace YTMusicApi.Data.YouTube
                 ItemCount = (int)playlist.ContentDetails.ItemCount
             };
         }
-        
-        public async Task<List<string>> GetPlaylistVideoIdsAsync(string playlistId)
+
+        public async Task<List<PlaylistDto>> GetPlaylistsAsync(List<string> playlistIds)
+        {
+            var request = _ytService.Playlists.List("snippet,contentDetails");
+            request.Id = string.Join(",", playlistIds);
+            var response = await request.ExecuteAsync();
+
+            return response.Items.Select(playlist => new PlaylistDto
+            {
+                PlaylistId = playlist.Id,
+                Title = playlist.Snippet.Title,
+                СhannelTitle = playlist.Snippet.ChannelTitle,
+                ItemCount = (int)playlist.ContentDetails.ItemCount
+            }).ToList();
+        }
+
+        public async Task<List<string>> GetTrackIdsFromPlaylistAsync(string playlistId)
         {
             var videoIds = new List<string>();
             string nextPageToken = null;
@@ -97,6 +112,5 @@ namespace YTMusicApi.Data.YouTube
 
             return videoIds;
         }
-
     }
 }

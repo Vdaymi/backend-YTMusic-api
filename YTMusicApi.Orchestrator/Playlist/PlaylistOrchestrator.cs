@@ -1,6 +1,6 @@
 ﻿using YTMusicApi.Model.Playlist;
 using YTMusicApi.Model.PlaylistTrack;
-using YTMusicApi.Model.Track;
+using YTMusicApi.Model.UserPlaylist;
 using YTMusicApi.Model.YouTube;
 
 namespace YTMusicApi.Orchestrator.Playlist
@@ -9,55 +9,39 @@ namespace YTMusicApi.Orchestrator.Playlist
     {
         private readonly IYouTubeRepository _youTubeRepository;
         private readonly IPlaylistRepository _playlistRepository;
-        private readonly IPlaylistTrackRepository _playlitTrackRepository;
-        private readonly ITrackRepository _trackRepository;
         private readonly IPlaylistTrackOrchestrator _playlitTrackOrchestrator;
+        private readonly IUserPlaylistOrchestrator _userPlaylistOrchestrator;
 
         public PlaylistOrchestrator(
             IYouTubeRepository youTubeRepository,
             IPlaylistRepository playlistRepository,
-            IPlaylistTrackRepository playlistTrackRepository,
-            ITrackRepository trackRepository,
-            IPlaylistTrackOrchestrator playlistTrackOrchestrator)
+            IPlaylistTrackOrchestrator playlistTrackOrchestrator,
+            IUserPlaylistOrchestrator userPlaylistOrchestrator)
         {
             _youTubeRepository = youTubeRepository;
             _playlistRepository = playlistRepository;
-            _playlitTrackRepository = playlistTrackRepository;
-            _trackRepository = trackRepository;
             _playlitTrackOrchestrator = playlistTrackOrchestrator;
+            _userPlaylistOrchestrator = userPlaylistOrchestrator;
         }
 
-        public async Task<PlaylistDto> PostPlaylistAsync(string playlistId)
+        public async Task<PlaylistDto> PostPlaylistAsync(string playlistId, Guid userId)
         {
-            var existingPlaylist = await GetByIdPlaylistAsync(playlistId);
+            var existingPlaylist = await _playlistRepository.GetByIdPlaylistAsync(playlistId);
             if (existingPlaylist != null)
+            {
+                await _userPlaylistOrchestrator.PostPlaylistToUserAsync(userId, playlistId);
                 return existingPlaylist;
-
+            }
             var youTubePlaylist = await _youTubeRepository.GetPlaylistAsync(playlistId);
             if (youTubePlaylist == null)
-                throw new ArgumentException("Playlist not found on YouTube.");
+                throw new ArgumentNullException("Playlist not found on YouTube Music.");
 
             var savedPlaylist = await _playlistRepository.PostPlaylistAsync(youTubePlaylist);
 
-            var youTubeTrackIds = await _youTubeRepository.GetPlaylistVideoIdsAsync(playlistId);
+            await _userPlaylistOrchestrator.PostPlaylistToUserAsync(userId, playlistId);
 
-            var dbTrackIds = await _playlitTrackRepository.GetTrackIdsByPlaylistAsync(playlistId);
+            await _playlitTrackOrchestrator.UpdateTracksFromPlaylistAsync(youTubePlaylist.PlaylistId);
 
-            var toAdd = youTubeTrackIds.Except(dbTrackIds).ToList();
-            var toRemove = dbTrackIds.Except(youTubeTrackIds).ToList();
-
-            if (toAdd.Any())
-            {
-                var missingTrackDtos = await _youTubeRepository.GetTracksAsync(toAdd);
-                foreach (var missingTrackDto in missingTrackDtos)
-                    await _trackRepository.PostTrackAsync(missingTrackDto);
-
-                foreach (var trackId in toAdd)
-                    await _playlitTrackOrchestrator.PostTrackToPlaylistAsync(playlistId, trackId);
-
-                foreach (var trackId in toRemove)
-                    await _playlitTrackOrchestrator.DeleteTrackFromPlaylistAsync(playlistId, trackId);
-            }
             return savedPlaylist;
         }
 
@@ -72,13 +56,20 @@ namespace YTMusicApi.Orchestrator.Playlist
         }
 
         public async Task<PlaylistDto> UpdatePlaylistAsync(string playlistId)
+        
         {
+            await GetByIdPlaylistAsync(playlistId);
+
             var playlistDto = await _youTubeRepository.GetPlaylistAsync(playlistId);
             if (playlistDto == null)
             {
-                throw new ArgumentNullException("Playlist not found in YouTube Music.");
+                throw new ArgumentNullException("Playlist not found on YouTube Music.");
             }
-            return await _playlistRepository.UpdatePlaylistAsync(playlistDto);
+            var updatedPlaylist = await _playlistRepository.UpdatePlaylistAsync(playlistDto);
+            
+            await _playlitTrackOrchestrator.UpdateTracksFromPlaylistAsync(playlistDto.PlaylistId);
+           
+            return updatedPlaylist;
         }
     }
 }

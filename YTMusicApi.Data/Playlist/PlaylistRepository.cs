@@ -1,9 +1,10 @@
 ﻿using AutoMapper;
+using Microsoft.EntityFrameworkCore;
 using YTMusicApi.Model.Playlist;
 
 namespace YTMusicApi.Data.Playlist
 {
-    public class PlaylistRepository : IPlaylistRepository
+    public class PlaylistRepository : IPlaylistRepository 
     {
         private readonly SqlDbContext _context;
         private readonly IMapper _mapper;
@@ -28,7 +29,7 @@ namespace YTMusicApi.Data.Playlist
 
         public async Task<PlaylistDto> GetByIdPlaylistAsync(string id)
         {
-            var playlistDao = await _context.Playlists.FindAsync(id);
+            var playlistDao = await _context.Playlists.AsNoTracking().FirstOrDefaultAsync(p => p.PlaylistId == id);
             return _mapper.Map<PlaylistDto>(playlistDao);
         }
 

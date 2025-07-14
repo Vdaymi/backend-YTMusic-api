@@ -8,6 +8,7 @@ namespace YTMusicApi.Model.YouTube
         Task<TrackDto> GetTrackAsync(string urlTrack);
         Task<List<TrackDto>> GetTracksAsync(List<string> trackIds);
         Task<PlaylistDto> GetPlaylistAsync(string playlistId);
-        Task<List<string>> GetPlaylistVideoIdsAsync(string playlistId);
+        Task<List<PlaylistDto>> GetPlaylistsAsync(List<string> playlistIds);
+        Task<List<string>> GetTrackIdsFromPlaylistAsync(string playlistId);
     }
 }

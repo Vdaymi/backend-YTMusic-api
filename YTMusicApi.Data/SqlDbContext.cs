@@ -2,6 +2,8 @@
 using YTMusicApi.Data.Playlist;
 using YTMusicApi.Data.PlaylistTrack;
 using YTMusicApi.Data.Track;
+using YTMusicApi.Data.User;
+using YTMusicApi.Data.UserPlaylist;
 
 namespace YTMusicApi.Data
 {
@@ -12,8 +14,9 @@ namespace YTMusicApi.Data
         } 
         public virtual DbSet<TrackDao> Tracks { get; set; }
         public virtual DbSet<PlaylistDao> Playlists { get; set; }
-
+        public virtual DbSet<UserDao> Users { get; set; }
         public virtual DbSet<PlaylistTrackDao> PlaylistTracks { get; set; }
+        public virtual DbSet<UserPlaylistDao> UserPlaylists { get; set; }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
@@ -31,6 +34,19 @@ namespace YTMusicApi.Data
                 .HasOne(pt => pt.Track)
                 .WithMany(t => t.PlaylistTracks)
                 .HasForeignKey(pt => pt.TrackId);
+
+            modelBuilder.Entity<UserPlaylistDao>()
+                .HasKey(up => new { up.UserId, up.PlaylistId });
+
+            modelBuilder.Entity<UserPlaylistDao>()
+                .HasOne(up => up.User)
+                .WithMany(u => u.UserPlaylists)
+                .HasForeignKey(up => up.UserId);
+
+            modelBuilder.Entity<UserPlaylistDao>()
+                .HasOne(up => up.Playlist)
+                .WithMany(p => p.UserPlaylists)
+                .HasForeignKey(up => up.PlaylistId);
         }
     }
 }

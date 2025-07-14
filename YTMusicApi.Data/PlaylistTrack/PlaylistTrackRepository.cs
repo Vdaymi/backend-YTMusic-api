@@ -1,13 +1,7 @@
 ﻿using AutoMapper;
 using Microsoft.EntityFrameworkCore;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using YTMusicApi.Data.Playlist;
-using YTMusicApi.Model.Playlist;
 using YTMusicApi.Model.PlaylistTrack;
+using YTMusicApi.Model.Track;
 
 namespace YTMusicApi.Data.PlaylistTrack
 {
@@ -50,11 +44,21 @@ namespace YTMusicApi.Data.PlaylistTrack
         }
 
         public async Task<List<string>> GetTrackIdsByPlaylistAsync(string playlistId)
-        { 
+        {
             return await _context.PlaylistTracks
                 .Where(pt => pt.PlaylistId == playlistId)
                 .Select(pt => pt.TrackId)
                 .ToListAsync();
-        } 
+        }
+
+        public async Task<List<TrackDto>> GetTracksByPlaylistAsync(string playlistId)
+        {
+            var trackDaos = await _context.PlaylistTracks
+                 .Where(pt => pt.PlaylistId == playlistId)
+                 .Select(pt => pt.Track)
+                 .ToListAsync();
+
+            return _mapper.Map<List<TrackDto>>(trackDaos);
+        }    
     }
 }

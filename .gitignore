@@ -9,3 +9,5 @@
 /YTMusicApi.Data/obj
 /YTMusicApi.Data/bin
 YTMusic-api/appsettings.Development.json
+/YTMusicApi.Platform/obj
+/YTMusicApi.Platform/bin

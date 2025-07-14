@@ -1,8 +1,12 @@
-﻿using Microsoft.AspNetCore.Mvc;
+﻿using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Mvc;
 using YTMusicApi.Model.PlaylistTrack;
+using YTMusicApi.Playlist.Contracts;
 
 namespace YTMusicApi.PlaylistTrack
 {
+    [ApiController]
+    [Route("api/v1/playlists")]
     public class PlaylistTrackController : ControllerBase
     {
         private readonly IPlaylistTrackOrchestrator _orchestrator;
@@ -12,25 +16,18 @@ namespace YTMusicApi.PlaylistTrack
             _orchestrator = orchestrator;
         }
 
-        [HttpPost("{playlistId}/tracks/{trackId}")]
-        public async Task<IActionResult> AddTrackToPlaylistAsync(string playlistId, string trackId)
+        [HttpGet("{playlistId}/tracks"), Authorize]
+        public async Task<IActionResult> GetTracksForPlaylistAsync([FromRoute] PlaylistIdRequest request)
         {
-            var addedTrackToplaylist = await _orchestrator.PostTrackToPlaylistAsync(playlistId, trackId);
-            return Ok(addedTrackToplaylist);
-        }
-
-        [HttpGet("{playlistId}/tracks")]
-        public async Task<IActionResult> GetTracksForPlaylistAsync(string playlistId)
-        {
-            var tracks = await _orchestrator.GetTracksForPlaylistAsync(playlistId);
+            var tracks = await _orchestrator.GetTracksForPlaylistAsync(request.PlaylistId);
             return Ok(tracks);
         }
 
-        [HttpDelete("{playlistId}/tracks/{trackId}")]
-        public async Task<IActionResult> DeleteTrack(string playlistId, string trackId)
+        [HttpPut("{playlistId}/tracks"), Authorize]
+        public async Task<IActionResult> UpdateTracksDataFromPlaylist([FromRoute] PlaylistIdRequest request)
         {
-            var deletedTrackFromplaylist = await _orchestrator.DeleteTrackFromPlaylistAsync(playlistId, trackId);
-            return Ok(deletedTrackFromplaylist);
+            var tracks = await _orchestrator.UpdateTracksDataFromPlaylist(request.PlaylistId);
+            return Ok(tracks);
         }
     }
 }

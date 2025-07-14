@@ -1,6 +1,7 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using System.Net;
+using System.Security.Authentication;
 
 namespace CarsMarket
 {
@@ -19,7 +20,7 @@ namespace CarsMarket
             {
                 await _next(httpContext);
             }
-            catch(KeyNotFoundException e)
+            catch (DbUpdateException e)
             {
                 var problemDetails = new ProblemDetails
                 {
@@ -29,33 +30,33 @@ namespace CarsMarket
                 };
                 httpContext.Response.StatusCode = (int)HttpStatusCode.NotFound;
 
-                await httpContext.Response.WriteAsJsonAsync(problemDetails); 
+                await httpContext.Response.WriteAsJsonAsync(problemDetails);
             }
-            catch(DbUpdateException e)
+            catch (ArgumentNullException e)
             {
                 var problemDetails = new ProblemDetails
                 {
                     Status = (int)HttpStatusCode.NotFound,
                     Title = "Not Found",
-                    Detail = $"Entity with this Id not found. {e.Message}"
+                    Detail = $"{e.Message}"
                 };
                 httpContext.Response.StatusCode = (int)HttpStatusCode.NotFound;
 
                 await httpContext.Response.WriteAsJsonAsync(problemDetails);
             }
-            catch(ArgumentNullException e)
+            catch (AuthenticationException e)
             {
                 var problemDetails = new ProblemDetails
                 {
-                    Status = (int)HttpStatusCode.BadRequest,
-                    Title = "Bad Request",
+                    Status = (int)HttpStatusCode.Unauthorized,
+                    Title = "Unauthorized",
                     Detail = $"{e.Message}"
                 };
-                httpContext.Response.StatusCode = (int)HttpStatusCode.BadRequest;
+                httpContext.Response.StatusCode = (int)HttpStatusCode.Unauthorized;
 
                 await httpContext.Response.WriteAsJsonAsync(problemDetails);
             }
-            catch(Exception e)
+            catch (Exception e)
             {
                 var problemDetails = new ProblemDetails
                 {

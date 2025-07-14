@@ -1,8 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+﻿using YTMusicApi.Model.Track;
 
 namespace YTMusicApi.Model.PlaylistTrack
 {
@@ -11,5 +7,6 @@ namespace YTMusicApi.Model.PlaylistTrack
         Task<PlaylistTrackDto> PostTrackToPlaylistAsync(PlaylistTrackDto playlistTrackDto);
         Task<PlaylistTrackDto> DeleteTrackFromPlaylistAsync(PlaylistTrackDto playlistTrackDto);
         Task<List<string>> GetTrackIdsByPlaylistAsync(string playlistId);
+        Task<List<TrackDto>> GetTracksByPlaylistAsync(string playlistId);
     }
 }

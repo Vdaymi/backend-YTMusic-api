@@ -10,6 +10,22 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <Compile Remove="Playlist\Contracts\**" />
+    <Content Remove="Playlist\Contracts\**" />
+    <EmbeddedResource Remove="Playlist\Contracts\**" />
+    <None Remove="Playlist\Contracts\**" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Compile Remove="Track\Contracts\IdPlaylist.cs" />
+    <Compile Remove="Track\Contracts\RegisterUser.cs" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Compile Include="Playlist\Contracts\PlaylistIdRequest.cs" />
+  </ItemGroup>
+
+  <ItemGroup>
     <PackageReference Include="AutoMapper" Version="15.0.0" />
     <PackageReference Include="Google.Apis.YouTube.v3" Version="1.69.0.3764" />
     <PackageReference Include="Microsoft.EntityFrameworkCore" Version="8.0.17" />
@@ -22,6 +38,7 @@
     <ProjectReference Include="..\YTMusicApi.Data\YTMusicApi.Data.csproj" />
     <ProjectReference Include="..\YTMusicApi.Model\YTMusicApi.Model.csproj" />
     <ProjectReference Include="..\YTMusicApi.Orchestrator\YTMusicApi.Orchestrator.csproj" />
+    <ProjectReference Include="..\YTMusicApi.Platform\YTMusicApi.Platform.csproj" />
   </ItemGroup>
 
 </Project>

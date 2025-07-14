@@ -1,0 +1,21 @@
+﻿namespace YTMusicApi.Model.User
+{
+    public class UserDto
+    {
+        private UserDto(Guid id, string userName, string passwordHash, string email)
+        {
+            Id = id;
+            UserName = userName;
+            PasswordHash = passwordHash;
+            Email = email;
+        }
+        public Guid Id { get; private set; }
+        public string UserName { get; private set; }
+        public string PasswordHash { get; private set; }
+        public string Email { get; private set; }
+        public static UserDto Create(string userName, string passwordHash, string email)
+        {
+            return new UserDto(Guid.NewGuid(), userName, passwordHash, email);
+        }
+    }
+}
