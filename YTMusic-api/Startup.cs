@@ -113,6 +113,12 @@ namespace YTMusicApi
             app.UseAuthentication();
             app.UseAuthorization();
 
+            using (var scope = app.ApplicationServices.CreateScope())
+            {
+                var db = scope.ServiceProvider.GetRequiredService<SqlDbContext>();
+                db.Database.Migrate();
+            }
+
             app.UseEndpoints(action => action.MapControllers());
         }
     }

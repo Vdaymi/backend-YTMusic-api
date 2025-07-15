@@ -11,3 +11,11 @@
 YTMusic-api/appsettings.Development.json
 /YTMusicApi.Platform/obj
 /YTMusicApi.Platform/bin
+/YTMusic-api/.vs
+/bin
+/obj
+/YTMusicApi.Data/YTMusicApi.Data/obj
+docker-compose.dcproj
+docker-compose.override.yml
+launchSettings.json
+docker-compose.yml

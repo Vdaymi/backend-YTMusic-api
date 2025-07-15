@@ -18,7 +18,7 @@ namespace YTMusicApi.Playlist
         }
 
         [HttpPost, Authorize]
-        public async Task<IActionResult> PostPlaylistAsync([FromRoute] PlaylistIdRequest request)
+        public async Task<IActionResult> PostPlaylistAsync([FromBody] PlaylistIdRequest request)
        {
             var userIdClaim = User.FindFirst("userId");
             
