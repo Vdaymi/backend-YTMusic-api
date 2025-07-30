@@ -1,5 +1,6 @@
 ﻿using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.RateLimiting;
 using YTMusicApi.Model.Playlist;
 using YTMusicApi.Playlist.Contracts;
 
@@ -35,7 +36,7 @@ namespace YTMusicApi.Playlist
             return Ok(playlistDto);
         }
 
-        [HttpPut("{playlistId}"), Authorize]
+        [HttpPut("{playlistId}"), Authorize, EnableRateLimiting("PerUserUpdatePlaylistPolicy")]
         public async Task<IActionResult> UpdatePlaylistAsync([FromRoute] PlaylistIdRequest request)
         {
             var updatedPlaylist = await _orchestrator.UpdatePlaylistAsync(request.PlaylistId);

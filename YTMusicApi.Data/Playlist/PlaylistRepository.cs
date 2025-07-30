@@ -33,6 +33,13 @@ namespace YTMusicApi.Data.Playlist
             return _mapper.Map<PlaylistDto>(playlistDao);
         }
 
+        public async Task<List<PlaylistDto>> GetPlaylistsByIdsAsync(List<string> playlistIds)
+        {
+            var playlistDaos = await _context.Playlists.AsNoTracking().Where(p => playlistIds.Contains(p.PlaylistId)).ToListAsync();
+
+            return _mapper.Map<List<PlaylistDto>>(playlistDaos);
+        }
+
         public async Task<PlaylistDto> UpdatePlaylistAsync(PlaylistDto playlistDto)
         {
             var playlistDao = _mapper.Map<PlaylistDao>(playlistDto);

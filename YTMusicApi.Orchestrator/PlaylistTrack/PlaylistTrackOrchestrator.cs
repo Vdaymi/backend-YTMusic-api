@@ -53,8 +53,8 @@ namespace YTMusicApi.Orchestrator.PlaylistTrack
             }
             return await _playlitTrackRepository.DeleteTrackFromPlaylistAsync(playlistTrackDto);
         }
-        
-        public async Task UpdateTracksFromPlaylistAsync(string playlistId) 
+
+        public async Task UpdateTracksFromPlaylistAsync(string playlistId)
         {
             var youTubeTrackIds = await _youTubeRepository.GetTrackIdsFromPlaylistAsync(playlistId);
 
@@ -66,13 +66,18 @@ namespace YTMusicApi.Orchestrator.PlaylistTrack
             if (toAdd.Any())
             {
                 var missingTrackDtos = await _youTubeRepository.GetTracksAsync(toAdd);
-
                 foreach (var missingTrackDto in missingTrackDtos)
-                    await _trackRepository.PostTrackAsync(missingTrackDto);
+                {
+                    var exists = await _trackRepository.GetByIdTrackAsync(missingTrackDto.TrackId);
+                    if (exists == null)
+                        await _trackRepository.PostTrackAsync(missingTrackDto);
+                     
+                    await PostTrackToPlaylistAsync(playlistId, missingTrackDto.TrackId);
 
-                foreach (var trackId in toAdd)
-                    await PostTrackToPlaylistAsync(playlistId, trackId);
-
+                }
+            }
+            if (toRemove.Any())
+            {
                 foreach (var trackId in toRemove)
                     await DeleteTrackFromPlaylistAsync(playlistId, trackId);
             }

@@ -12,7 +12,6 @@ using YTMusicApi.Model.YouTube;
 using YTMusicApi.Orchestrator.Playlist;
 using YTMusicApi.Orchestrator.Track;
 using Microsoft.EntityFrameworkCore;
-using CarsMarket;
 using YTMusicApi.Data.PlaylistTrack;
 using YTMusicApi.Model.PlaylistTrack;
 using YTMusicApi.Data.User;
@@ -27,6 +26,7 @@ using Microsoft.AspNetCore.CookiePolicy;
 using YTMusicApi.Model.UserPlaylist;
 using YTMusicApi.Data.UserPlaylist;
 using YTMusicApi.Orchestrator.UserPlaylist;
+using YTMusicApi.Middleware;
 
 namespace YTMusicApi
 {
@@ -41,12 +41,26 @@ namespace YTMusicApi
 
         public void ConfigureServices(IServiceCollection services)
         {
+            services.AddPerUserRateLimiting();
             services.AddControllers();
             services.AddEndpointsApiExplorer();
             services.AddSwaggerGen();
 
             services.Configure<JwtOptions>(_configuration.GetSection("JwtOptions"));
             services.AddApiAuthentication(_configuration);
+            
+            services.AddCors(options =>
+            {
+                options.AddDefaultPolicy(policy =>
+                {
+                    policy.WithOrigins("http://localhost:5173", "http://localhost");
+                    policy.AllowAnyHeader();
+                    policy.AllowAnyMethod();
+                    policy.AllowCredentials();
+                    policy.WithExposedHeaders("x-ratelimit-reset");
+                });
+            });
+
 
             services.AddScoped<IYouTubeRepository, YouTubeRepository>();
 
@@ -97,9 +111,12 @@ namespace YTMusicApi
         public void Configure(IApplicationBuilder app)
         {
             app.UseMiddleware<ExceptionHandlingMiddleware>();
+
             app.UseSwagger();
             app.UseSwaggerUI();
 
+
+            app.UseCors();
             app.UseHttpsRedirection();
 
             app.UseRouting();
@@ -116,8 +133,11 @@ namespace YTMusicApi
             using (var scope = app.ApplicationServices.CreateScope())
             {
                 var db = scope.ServiceProvider.GetRequiredService<SqlDbContext>();
-                db.Database.Migrate();
+            //    db.Database.Migrate();
             }
+
+            app.UsePerUserRateLimiting();
+            app.UseMiddleware<RateLimitResetMiddleware>();
 
             app.UseEndpoints(action => action.MapControllers());
         }

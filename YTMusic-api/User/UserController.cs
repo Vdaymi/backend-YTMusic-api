@@ -27,7 +27,13 @@ namespace YTMusicApi.User
         {
             var token = await _orchestrator.LoginAsync(loginUser.Email, loginUser.Password);
 
-            HttpContext.Response.Cookies.Append("cookies-play", token);
+            HttpContext.Response.Cookies.Append("cookies-play", token, new CookieOptions
+            {
+                HttpOnly = true,
+                // Secure = true, 
+                SameSite = SameSiteMode.None,
+                Expires = DateTimeOffset.UtcNow.AddDays(7)
+            });
 
             return Ok();
         }

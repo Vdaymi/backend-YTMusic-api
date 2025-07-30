@@ -19,3 +19,6 @@ docker-compose.dcproj
 docker-compose.override.yml
 launchSettings.json
 docker-compose.yml
+YTMusic-api/cert.pem
+/YTMusic-api/certs
+YTMusic-api/key.pem

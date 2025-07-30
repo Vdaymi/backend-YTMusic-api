@@ -3,7 +3,7 @@ using Microsoft.EntityFrameworkCore;
 using System.Net;
 using System.Security.Authentication;
 
-namespace CarsMarket
+namespace YTMusicApi.Middleware
 {
     public class ExceptionHandlingMiddleware
     {

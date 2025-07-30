@@ -33,7 +33,7 @@ namespace YTMusicApi.Data.YouTube
                 ViewCount = (long)video.Statistics.ViewCount,
                 LikeCount = (long)video.Statistics.LikeCount,
                 Duration = XmlConvert.ToTimeSpan(video.ContentDetails.Duration),
-                ImageUrl = video.Snippet.Thumbnails.Standard.Url
+                ImageUrl = video.Snippet.Thumbnails.Medium.Url
             };
         }
 
@@ -52,7 +52,7 @@ namespace YTMusicApi.Data.YouTube
                 ViewCount = (long)track.Statistics.ViewCount,
                 LikeCount = (long)track.Statistics.LikeCount,
                 Duration = XmlConvert.ToTimeSpan(track.ContentDetails.Duration),
-                ImageUrl = track.Snippet.Thumbnails.Standard.Url
+                ImageUrl = track.Snippet.Thumbnails.Medium.Url
             }).ToList();
         }
 

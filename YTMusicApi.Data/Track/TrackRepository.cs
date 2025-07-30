@@ -1,4 +1,5 @@
 ﻿using AutoMapper;
+using Microsoft.EntityFrameworkCore;
 using YTMusicApi.Model.Track;
 
 namespace YTMusicApi.Data.Track
@@ -28,7 +29,7 @@ namespace YTMusicApi.Data.Track
 
         public async Task<TrackDto> GetByIdTrackAsync(string id)
         {
-            var trackDao = await _context.Tracks.FindAsync(id);
+            var trackDao = await _context.Tracks.AsNoTracking().FirstOrDefaultAsync(t => t.TrackId == id);
             return _mapper.Map<TrackDto>(trackDao);
         }
 

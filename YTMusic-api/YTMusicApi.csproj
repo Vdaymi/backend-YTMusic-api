@@ -42,7 +42,12 @@
     <PackageReference Include="Microsoft.VisualStudio.Azure.Containers.Tools.Targets" Version="1.21.0" />
     <PackageReference Include="Swashbuckle.AspNetCore" Version="6.6.2" />
   </ItemGroup>
-
+  <ItemGroup>
+	<None Update="certs\https.pfx">
+	  <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+	</None>
+  </ItemGroup>
+	
   <ItemGroup>
     <ProjectReference Include="..\YTMusicApi.Data\YTMusicApi.Data.csproj" />
     <ProjectReference Include="..\YTMusicApi.Model\YTMusicApi.Model.csproj" />
