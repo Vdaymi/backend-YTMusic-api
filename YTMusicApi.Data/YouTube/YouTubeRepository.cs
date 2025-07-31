@@ -39,22 +39,31 @@ namespace YTMusicApi.Data.YouTube
 
         public async Task<List<TrackDto>> GetTracksAsync(List<string> trackIds)
         {
-            var request = _ytService.Videos.List("snippet,statistics,contentDetails,topicDetails");
-            request.Id = string.Join(",", trackIds);
-            var response = await request.ExecuteAsync();
+            var result = new List<TrackDto>();
+            const int maxChunkSize = 50;
 
-            return response.Items.Select(track => new TrackDto
+            foreach (var chunk in trackIds.Chunk(maxChunkSize))
             {
-                TrackId = track.Id,
-                CategoryId = int.Parse(track.Snippet.CategoryId),
-                Title = track.Snippet.Title,
-                ChannelTitle = track.Snippet.ChannelTitle,
-                ViewCount = (long)track.Statistics.ViewCount,
-                LikeCount = (long)track.Statistics.LikeCount,
-                Duration = XmlConvert.ToTimeSpan(track.ContentDetails.Duration),
-                ImageUrl = track.Snippet.Thumbnails.Medium.Url
-            }).ToList();
+                var request = _ytService.Videos.List("snippet,statistics,contentDetails,topicDetails");
+                request.Id = string.Join(",", chunk);
+                var response = await request.ExecuteAsync();
+
+                result.AddRange(response.Items.Select(track => new TrackDto
+                {
+                    TrackId = track.Id,
+                    CategoryId = int.Parse(track.Snippet.CategoryId),
+                    Title = track.Snippet.Title,
+                    ChannelTitle = track.Snippet.ChannelTitle,
+                    ViewCount = (long)track.Statistics.ViewCount,
+                    LikeCount = (long)track.Statistics.LikeCount,
+                    Duration = XmlConvert.ToTimeSpan(track.ContentDetails.Duration),
+                    ImageUrl = track.Snippet.Thumbnails.Medium.Url
+                }));
+            }
+
+            return result;
         }
+
 
         public async Task<PlaylistDto> GetPlaylistAsync(string playlistId)
         {

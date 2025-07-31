@@ -53,7 +53,7 @@ namespace YTMusicApi
             {
                 options.AddDefaultPolicy(policy =>
                 {
-                    policy.WithOrigins("http://localhost:5173", "http://localhost");
+                    policy.WithOrigins("http://localhost:5173", "http://localhost", "http://localhost:80");
                     policy.AllowAnyHeader();
                     policy.AllowAnyMethod();
                     policy.AllowCredentials();
@@ -117,7 +117,7 @@ namespace YTMusicApi
 
 
             app.UseCors();
-            app.UseHttpsRedirection();
+            //app.UseHttpsRedirection();
 
             app.UseRouting();
 

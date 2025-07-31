@@ -20,9 +20,6 @@ public class Program
                 .ConfigureWebHostDefaults(webBuilder =>
                 {
                     webBuilder
-                        .UseStartup<Startup>()
-                        .ConfigureKestrel((context, options) =>
-                            options.Configure(context.Configuration.GetSection("Kestrel"))
-                        );
+                        .UseStartup<Startup>();
                 });
 }
