@@ -53,7 +53,7 @@ namespace YTMusicApi
             {
                 options.AddDefaultPolicy(policy =>
                 {
-                    policy.WithOrigins("http://localhost:5173", "http://localhost", "http://localhost:80");
+                    policy.WithOrigins("http://localhost:5173", "http://localhost", "http://localhost:80", "https://ytmusicplaylists.vercel.app");
                     policy.AllowAnyHeader();
                     policy.AllowAnyMethod();
                     policy.AllowCredentials();
@@ -123,9 +123,9 @@ namespace YTMusicApi
 
             app.UseCookiePolicy(new CookiePolicyOptions
             {
-                MinimumSameSitePolicy = SameSiteMode.Strict,
+                MinimumSameSitePolicy = SameSiteMode.None,
                 Secure = CookieSecurePolicy.Always,
-                HttpOnly = HttpOnlyPolicy.Always
+                HttpOnly = HttpOnlyPolicy.Always,
             });
             app.UseAuthentication();
             app.UseAuthorization();
