@@ -27,6 +27,7 @@ using YTMusicApi.Model.UserPlaylist;
 using YTMusicApi.Data.UserPlaylist;
 using YTMusicApi.Orchestrator.UserPlaylist;
 using YTMusicApi.Middleware;
+using Microsoft.AspNetCore.HttpOverrides;
 
 namespace YTMusicApi
 {
@@ -106,11 +107,19 @@ namespace YTMusicApi
                     ApplicationName = ytSettings.ApplicationName
                 });
             });
+            services.Configure<ForwardedHeadersOptions>(options =>
+            {
+                options.ForwardedHeaders = ForwardedHeaders.XForwardedFor | ForwardedHeaders.XForwardedProto;
+                options.KnownNetworks.Clear();
+                options.KnownProxies.Clear();
+            });
         }
 
         public void Configure(IApplicationBuilder app)
         {
             app.UseMiddleware<ExceptionHandlingMiddleware>();
+
+            app.UseForwardedHeaders();
 
             app.UseSwagger();
             app.UseSwaggerUI();

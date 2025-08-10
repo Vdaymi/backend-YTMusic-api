@@ -30,7 +30,7 @@ namespace YTMusicApi.User
             HttpContext.Response.Cookies.Append("cookies-play", token, new CookieOptions
             {
                 HttpOnly = true,
-                // Secure = true, 
+                Secure = true, 
                 SameSite = SameSiteMode.None,
                 Expires = DateTimeOffset.UtcNow.AddDays(7)
             });
