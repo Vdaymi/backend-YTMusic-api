@@ -15,10 +15,7 @@ YTMusic-api/appsettings.Development.json
 /bin
 /obj
 /YTMusicApi.Data/YTMusicApi.Data/obj
-docker-compose.dcproj
-docker-compose.override.yml
 launchSettings.json
-docker-compose.yml
 YTMusic-api/cert.pem
 /YTMusic-api/certs
 YTMusic-api/key.pem

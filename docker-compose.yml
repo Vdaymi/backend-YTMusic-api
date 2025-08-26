@@ -1,0 +1,42 @@
+version: "3.9"
+
+services:
+    ytmusicapi:
+        container_name: yt-music-api
+        build:
+              context: .
+              dockerfile: YTMusic-api/Dockerfile
+        ports:
+            - "8080:8080"
+            - "8081:8081"
+        environment:
+             - "ASPNETCORE_URLS=http://+:8080;https://+:8081"
+             - ASPNETCORE_Kestrel__Certificates__Default__Path=/app/certs/https.pfx
+             - ASPNETCORE_Kestrel__Certificates__Default__Password=Vadim123
+        volumes:
+             - ./YTMusic-api/certs/https.pfx:/app/certs/https.pfx:ro
+        networks:
+            - yt-music-api-dev
+        depends_on:
+            - sqlserver
+        restart: on-failure
+
+    sqlserver:
+        container_name: sqlserver
+        image: mcr.microsoft.com/mssql/server:2022-latest
+        environment:
+            SA_PASSWORD: "ofitfhpwps!"
+            ACCEPT_EULA: "Y"
+        ports:
+            - "1433:1433"
+        volumes:
+            - sqlvolume:/var/opt/mssql
+        networks:
+            - yt-music-api-dev
+
+networks: 
+    yt-music-api-dev:
+        driver: bridge
+
+volumes:
+    sqlvolume:
