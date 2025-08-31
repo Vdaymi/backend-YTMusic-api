@@ -1,4 +1,4 @@
-# backend-YTMusic-api
+# YTMusic Backend API
 
 <p>
   <img src="https://img.shields.io/badge/Engine-.Net%208-purple" alt=".Net Version">
