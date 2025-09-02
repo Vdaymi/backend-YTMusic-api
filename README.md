@@ -6,7 +6,7 @@
   <img src="https://img.shields.io/badge/License-MIT-green" alt="License">
 </p>
 
-`backend-YTMusic-api` — an **ASP.NET Core Web API** for applications that work with playlists and tracks based on YouTube metadata. The project encapsulates core concerns such as JWT authentication, database persistence, and integration with the YouTube Data API. It provides a convenient, extensible and secure foundation for music apps, bots, or microservices.
+`YTMusic Backend API` — an **ASP.NET Core Web API** for applications that work with playlists and tracks based on YouTube metadata. The project encapsulates core concerns such as JWT authentication, database persistence, and integration with the YouTube Data API. It provides a convenient, extensible and secure foundation for music apps, bots, or microservices.
 
 ---
 
