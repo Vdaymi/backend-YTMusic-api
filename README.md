@@ -20,7 +20,6 @@
 * [Endpoints](#endpoints)
 * [Docker](#docker)
 * [EF Core migrations](#ef-core-migrations)
-* [Frontend](#frontend)
 * [License](#license)
 * [Contacts](#contacts)
 
@@ -204,12 +203,6 @@ Apply migrations with:
 ```bash
 dotnet ef database update --project YTMusicApi.Data --startup-project YTMusic-api
 ```
-
----
-
-## Frontend
-
-The frontend for this project is deployed at: [https://ytmusicplaylists.vercel.app/](https://ytmusicplaylists.vercel.app/)
 
 ---
 
