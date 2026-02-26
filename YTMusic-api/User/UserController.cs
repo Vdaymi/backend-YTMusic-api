@@ -25,14 +25,27 @@ namespace YTMusicApi.User
         [HttpPost("login")]
         public async Task<IActionResult> LoginAsync(LoginUser loginUser)
         {
-            var token = await _orchestrator.LoginAsync(loginUser.Email, loginUser.Password);
+            var result = await _orchestrator.LoginAsync(loginUser.Email, loginUser.Password);
 
-            HttpContext.Response.Cookies.Append("cookies-play", token, new CookieOptions
+            HttpContext.Response.Cookies.Append("cookies-play", result.Token, new CookieOptions
             {
                 HttpOnly = true,
                 Secure = true, 
                 SameSite = SameSiteMode.None,
                 Expires = DateTimeOffset.UtcNow.AddDays(7)
+            });
+
+            return Ok(result.UserName);
+        }
+
+        [HttpPost("logout")]
+        public IActionResult Logout()
+        {
+            HttpContext.Response.Cookies.Delete("cookies-play", new CookieOptions
+            {
+                HttpOnly = true,
+                Secure = true,
+                SameSite = SameSiteMode.None
             });
 
             return Ok();

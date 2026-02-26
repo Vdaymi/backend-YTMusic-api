@@ -12,7 +12,7 @@ using YTMusicApi.Data;
 namespace YTMusicApi.Data.Migrations
 {
     [DbContext(typeof(SqlDbContext))]
-    [Migration("20250715180954_InitialCreate")]
+    [Migration("20260208191255_InitialCreate")]
     partial class InitialCreate
     {
         /// <inheritdoc />
@@ -97,10 +97,18 @@ namespace YTMusicApi.Data.Migrations
                         .HasColumnType("bigint")
                         .HasColumnName("like_count");
 
+                    b.Property<DateTime?>("PublishedAt")
+                        .HasColumnType("datetime2")
+                        .HasColumnName("published_at");
+
                     b.Property<string>("Title")
                         .IsRequired()
                         .HasColumnType("nvarchar(max)")
                         .HasColumnName("title");
+
+                    b.Property<string>("TopicCategories")
+                        .HasColumnType("nvarchar(max)")
+                        .HasColumnName("topic_categories");
 
                     b.Property<long?>("ViewCount")
                         .HasColumnType("bigint")

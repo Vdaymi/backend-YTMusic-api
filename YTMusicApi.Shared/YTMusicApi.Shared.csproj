@@ -6,8 +6,4 @@
     <Nullable>enable</Nullable>
   </PropertyGroup>
 
-  <ItemGroup>
-    <ProjectReference Include="..\YTMusicApi.Shared\YTMusicApi.Shared.csproj" />
-  </ItemGroup>
-
 </Project>

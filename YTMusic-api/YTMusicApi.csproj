@@ -23,6 +23,7 @@
   </ItemGroup>
 
   <ItemGroup>
+    <Compile Include="Playlist\Contracts\OptimizationRequest.cs" />
     <Compile Include="Playlist\Contracts\PlaylistIdRequest.cs" />
   </ItemGroup>
 

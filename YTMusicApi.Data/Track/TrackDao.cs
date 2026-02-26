@@ -23,6 +23,10 @@ namespace YTMusicApi.Data.Track
         public TimeSpan Duration { get; set; }
         [Column("image_url")]
         public string ImageUrl { get; set; }
+        [Column("published_at")]
+        public DateTime? PublishedAt { get; set; }
+        [Column("topic_categories")]
+        public string? TopicCategories { get; set; }
 
         public ICollection<PlaylistTrackDao> PlaylistTracks { get; set; } = new List<PlaylistTrackDao>();
     }

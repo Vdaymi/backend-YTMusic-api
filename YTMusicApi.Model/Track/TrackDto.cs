@@ -1,4 +1,6 @@
-﻿namespace YTMusicApi.Model.Track
+﻿using System.ComponentModel.DataAnnotations.Schema;
+
+namespace YTMusicApi.Model.Track
 {
     public class TrackDto
     {
@@ -10,5 +12,7 @@
         public long? LikeCount { get; set; }
         public TimeSpan Duration { get; set; }
         public string ImageUrl { get; set; }
+        public DateTime? PublishedAt { get; set; }
+        public string? TopicCategories { get; set; }
     }
 }

@@ -56,6 +56,17 @@ namespace YTMusicApi.Middleware
 
                 await httpContext.Response.WriteAsJsonAsync(problemDetails);
             }
+            catch (HttpRequestException e)
+            {
+                var problemDetails = new ProblemDetails
+                {
+                    Status = (int)HttpStatusCode.BadGateway,
+                    Title = "External Service Error",
+                    Detail = $"Failed to communicate with Optimizer Service. Please try again later. {e.Message}"
+                };
+                httpContext.Response.StatusCode = (int)HttpStatusCode.BadGateway;
+                await httpContext.Response.WriteAsJsonAsync(problemDetails);
+            }
             catch (Exception e)
             {
                 var problemDetails = new ProblemDetails

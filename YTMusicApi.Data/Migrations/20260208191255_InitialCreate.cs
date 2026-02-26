@@ -36,7 +36,9 @@ namespace YTMusicApi.Data.Migrations
                     view_count = table.Column<long>(type: "bigint", nullable: true),
                     like_count = table.Column<long>(type: "bigint", nullable: true),
                     duration = table.Column<TimeSpan>(type: "time", nullable: false),
-                    image_url = table.Column<string>(type: "nvarchar(max)", nullable: false)
+                    image_url = table.Column<string>(type: "nvarchar(max)", nullable: false),
+                    published_at = table.Column<DateTime>(type: "datetime2", nullable: true),
+                    topic_categories = table.Column<string>(type: "nvarchar(max)", nullable: true)
                 },
                 constraints: table =>
                 {

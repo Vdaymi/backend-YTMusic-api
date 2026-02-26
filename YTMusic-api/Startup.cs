@@ -1,33 +1,35 @@
 ﻿using AutoMapper;
 using Google.Apis.Services;
 using Google.Apis.YouTube.v3;
-using Microsoft.Extensions.Options;
-using YTMusicApi.Data.Playlist;
-using YTMusicApi.Data.Track;
-using YTMusicApi.Data.YouTube;
-using YTMusicApi.Data;
-using YTMusicApi.Model.Playlist;
-using YTMusicApi.Model.Track;
-using YTMusicApi.Model.YouTube;
-using YTMusicApi.Orchestrator.Playlist;
-using YTMusicApi.Orchestrator.Track;
-using Microsoft.EntityFrameworkCore;
-using YTMusicApi.Data.PlaylistTrack;
-using YTMusicApi.Model.PlaylistTrack;
-using YTMusicApi.Data.User;
-using YTMusicApi.Orchestrator.PlaylistTrack;
-using YTMusicApi.Model.User;
-using YTMusicApi.Orchestrator.User;
-using YTMusicApi.Model.Auth;
-using YTMusicApi.Platform.Jwt;
-using YTMusicApi.Platform;
-using YTMusicApi.Extensions;
 using Microsoft.AspNetCore.CookiePolicy;
-using YTMusicApi.Model.UserPlaylist;
-using YTMusicApi.Data.UserPlaylist;
-using YTMusicApi.Orchestrator.UserPlaylist;
-using YTMusicApi.Middleware;
 using Microsoft.AspNetCore.HttpOverrides;
+using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Options;
+using YTMusicApi.Data;
+using YTMusicApi.Data.Playlist;
+using YTMusicApi.Data.PlaylistTrack;
+using YTMusicApi.Data.Track;
+using YTMusicApi.Data.User;
+using YTMusicApi.Data.UserPlaylist;
+using YTMusicApi.Data.YouTube;
+using YTMusicApi.Extensions;
+using YTMusicApi.Middleware;
+using YTMusicApi.Model.Auth;
+using YTMusicApi.Model.Integration;
+using YTMusicApi.Model.Playlist;
+using YTMusicApi.Model.PlaylistTrack;
+using YTMusicApi.Model.Track;
+using YTMusicApi.Model.User;
+using YTMusicApi.Model.UserPlaylist;
+using YTMusicApi.Model.YouTube;
+using YTMusicApi.Orchestrator.Integration;
+using YTMusicApi.Orchestrator.Playlist;
+using YTMusicApi.Orchestrator.PlaylistTrack;
+using YTMusicApi.Orchestrator.Track;
+using YTMusicApi.Orchestrator.User;
+using YTMusicApi.Orchestrator.UserPlaylist;
+using YTMusicApi.Platform;
+using YTMusicApi.Platform.Jwt;
 
 namespace YTMusicApi
 {
@@ -90,7 +92,8 @@ namespace YTMusicApi
                 new PlaylistDaoProfile(),
                 new PlaylistTrackDaoProfile(),
                 new UserDaoProfile(),
-                new UserPlaylistDaoProfile()
+                new UserPlaylistDaoProfile(),
+                new TrackOptimizationDtoProfile()
             }));
             
             services.AddDbContext<SqlDbContext>(config => config.UseSqlServer(
@@ -112,6 +115,10 @@ namespace YTMusicApi
                 options.ForwardedHeaders = ForwardedHeaders.XForwardedFor | ForwardedHeaders.XForwardedProto;
                 options.KnownNetworks.Clear();
                 options.KnownProxies.Clear();
+            });
+            services.AddHttpClient<IOptimizerClient, OptimizerClient>(client =>
+            {
+                client.BaseAddress = new Uri("https://localhost:7209/");
             });
         }
 

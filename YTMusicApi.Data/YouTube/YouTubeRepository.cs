@@ -1,4 +1,5 @@
 ﻿using Google.Apis.YouTube.v3;
+using Google.Apis.YouTube.v3.Data;
 using System.Xml;
 using YTMusicApi.Model.Playlist;
 using YTMusicApi.Model.Track;
@@ -21,19 +22,24 @@ namespace YTMusicApi.Data.YouTube
             request.Id = trackId;
             var response = await request.ExecuteAsync();
 
-            var video = response.Items.FirstOrDefault();
-            if (video == null) return null;
+            var track = response.Items.FirstOrDefault();
+            if (track == null) return null;
 
             return new TrackDto
             {
                 TrackId = trackId,
-                CategoryId = int.Parse(video.Snippet.CategoryId),
-                Title = video.Snippet.Title,
-                ChannelTitle = video.Snippet.ChannelTitle,
-                ViewCount = (long)video.Statistics.ViewCount,
-                LikeCount = (long)video.Statistics.LikeCount,
-                Duration = XmlConvert.ToTimeSpan(video.ContentDetails.Duration),
-                ImageUrl = video.Snippet.Thumbnails.Medium.Url
+                CategoryId = int.Parse(track.Snippet.CategoryId),
+                Title = track.Snippet.Title,
+                ChannelTitle = track.Snippet.ChannelTitle,
+                ViewCount = (long?)track.Statistics.ViewCount ?? 0,
+                LikeCount = (long?)track.Statistics.LikeCount ?? 0,
+                Duration = XmlConvert.ToTimeSpan(track.ContentDetails.Duration),
+                ImageUrl = track.Snippet.Thumbnails.Medium.Url,
+                PublishedAt = track.Snippet.PublishedAtDateTimeOffset?.UtcDateTime,
+                TopicCategories = track.TopicDetails?.TopicCategories != null
+                    ? string.Join(",", track.TopicDetails.TopicCategories
+                        .Select(url => url.Split('/').Last().Replace("_", " ")))
+                    : null
             };
         }
 
@@ -54,10 +60,15 @@ namespace YTMusicApi.Data.YouTube
                     CategoryId = int.Parse(track.Snippet.CategoryId),
                     Title = track.Snippet.Title,
                     ChannelTitle = track.Snippet.ChannelTitle,
-                    ViewCount = (long)track.Statistics.ViewCount,
-                    LikeCount = (long)track.Statistics.LikeCount,
+                    ViewCount = (long?)track.Statistics.ViewCount ?? 0,
+                    LikeCount = (long?)track.Statistics.LikeCount ?? 0,
                     Duration = XmlConvert.ToTimeSpan(track.ContentDetails.Duration),
-                    ImageUrl = track.Snippet.Thumbnails.Medium.Url
+                    ImageUrl = track.Snippet.Thumbnails.Medium.Url,
+                    PublishedAt = track.Snippet.PublishedAtDateTimeOffset?.UtcDateTime,
+                    TopicCategories = track.TopicDetails?.TopicCategories != null
+                    ? string.Join(",", track.TopicDetails.TopicCategories
+                        .Select(url => url.Split('/').Last().Replace("_", " ")))
+                    : null
                 }));
             }
 

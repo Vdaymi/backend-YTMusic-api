@@ -29,7 +29,7 @@ namespace YTMusicApi.Orchestrator.User
             await _userRepository.AddUserAsync(userDto);
         }
 
-        public async Task<string> LoginAsync(string email, string password)
+        public async Task<LoginResultDto> LoginAsync(string email, string password)
         {
             var userDto = await _userRepository.GetByEmailAsync(email);
             if (userDto == null)
@@ -45,7 +45,11 @@ namespace YTMusicApi.Orchestrator.User
 
             var token = _jwtProvider.GenerateToken(userDto);
 
-            return token;
+            return new LoginResultDto 
+            {
+                Token = token,
+                UserName = userDto.UserName
+            };
         }
     }
 }

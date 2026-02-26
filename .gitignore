@@ -19,3 +19,7 @@ launchSettings.json
 YTMusic-api/cert.pem
 /YTMusic-api/certs
 YTMusic-api/key.pem
+/YTMusicApi.Optimizer/bin
+/YTMusicApi.Optimizer/obj
+/YTMusicApi.Shared/obj
+/YTMusicApi.Shared/bin

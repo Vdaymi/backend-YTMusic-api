@@ -1,0 +1,6 @@
+@YTMusicApi.Optimizer_HostAddress = http://localhost:5239
+
+GET {{YTMusicApi.Optimizer_HostAddress}}/weatherforecast/
+Accept: application/json
+
+###
