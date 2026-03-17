@@ -3,9 +3,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.RateLimiting;
 using YTMusicApi.Model.Playlist;
 using YTMusicApi.Model.Track;
-using YTMusicApi.Orchestrator.Playlist;
 using YTMusicApi.Playlist.Contracts;
-using YTMusicApi.Shared.Optimization;
 
 namespace YTMusicApi.Playlist
 {
@@ -46,14 +44,25 @@ namespace YTMusicApi.Playlist
             return Ok(updatedPlaylist);
         }
 
-        [HttpPost("{playlistId}/optimize")]
-        public async Task<ActionResult<List<TrackDto>>> OptimizePlaylistAsync(string playlistId, [FromQuery] OptimizationRequest requestSettings)
+        [HttpPost("{playlistId}/optimize"), Authorize]
+        public async Task<ActionResult<List<TrackDto>>> OptimizePlaylistAsync(string playlistId, [FromBody] OptimizationRequest requestSettings)
         {
             var optimizedTracks = await _orchestrator.GetOptimizedTracksAsync(playlistId, requestSettings.TimeLimit,
                                                                               requestSettings.MaxTracks, requestSettings.Algorithm,
                                                                               requestSettings.GenreWeight, 
                                                                               requestSettings.StartTrackId);
             return Ok(optimizedTracks);
+        }
+        [HttpPost("optimized"), Authorize]
+        public async Task<IActionResult> PostOptimizedPlaylistAsync([FromBody] SaveOptimizedPlaylistRequest request)
+        {
+            var userIdClaim = User.FindFirst("userId");
+            var userId = Guid.Parse(userIdClaim.Value);
+
+            var savedPlaylist = await _orchestrator.PostOptimizedPlaylistAsync(userId, request.Title, request.ChannelTitle,
+                                                                               request.TrackIds, request.TargetDuration,
+                                                                               request.Algorithm, request.GenreWeight);
+            return Ok(savedPlaylist);
         }
     }
 } 

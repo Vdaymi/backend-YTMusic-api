@@ -25,6 +25,7 @@
   <ItemGroup>
     <Compile Include="Playlist\Contracts\OptimizationRequest.cs" />
     <Compile Include="Playlist\Contracts\PlaylistIdRequest.cs" />
+    <Compile Include="Playlist\Contracts\SaveOptimizedPlaylistRequest.cs" />
   </ItemGroup>
 
   <ItemGroup>

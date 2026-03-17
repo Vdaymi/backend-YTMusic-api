@@ -9,5 +9,6 @@ namespace YTMusicApi.Model.PlaylistTrack
         Task<List<TrackDto>> GetTracksForPlaylistAsync(string playlistId);
         Task UpdateTracksFromPlaylistAsync(string playlistId);
         Task<List<TrackDto>> UpdateTracksDataFromPlaylist(string playlistId);
+        Task PostOptimizedTracksAsync(string playlistId, List<string> trackIds);
     }
 }

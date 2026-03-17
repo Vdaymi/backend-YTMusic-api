@@ -68,7 +68,9 @@ namespace YTMusicApi.Orchestrator.Playlist
 
         public async Task<PlaylistDto> UpdatePlaylistAsync(string playlistId) 
         {
-            await GetByIdPlaylistAsync(playlistId);
+            var existingPlaylist = await GetByIdPlaylistAsync(playlistId);
+            if (existingPlaylist.Source == PlaylistSource.Optimized) 
+                return existingPlaylist;
 
             var playlistDto = await _youTubeRepository.GetPlaylistAsync(playlistId);
             if (playlistDto == null)
@@ -119,6 +121,34 @@ namespace YTMusicApi.Orchestrator.Playlist
             }
 
             return optimizedTracks;
+        }
+        public async Task<PlaylistDto> PostOptimizedPlaylistAsync(Guid userId, string title, string channelTitle, List<string> trackIds, TimeSpan targetDuration, OptimizationAlgorithmType algorithm, double genreWeight)
+        {
+            string newPlaylistId = "OP" + Guid.NewGuid().ToString("N");
+
+            var playlistDto = new PlaylistDto
+            {
+                PlaylistId = newPlaylistId,
+                Title = title,
+                ChannelTitle = channelTitle,
+                ItemCount = trackIds.Count,
+                Source = PlaylistSource.Optimized
+            };
+            var savedPlaylist = await _playlistRepository.PostPlaylistAsync(playlistDto);
+
+            await _userPlaylistOrchestrator.PostPlaylistToUserAsync(userId, newPlaylistId);
+            await _playlistTrackOrchestrator.PostOptimizedTracksAsync(newPlaylistId, trackIds);
+
+            var settingsDto = new PlaylistSettingDto
+            {
+                PlaylistId = newPlaylistId,
+                TargetDuration = targetDuration,
+                Algorithm = algorithm,
+                GenreWeight = genreWeight
+            };
+            await _playlistRepository.PostPlaylistSettingsAsync(settingsDto);
+
+            return savedPlaylist;
         }
     }
 }

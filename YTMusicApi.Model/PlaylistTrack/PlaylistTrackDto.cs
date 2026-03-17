@@ -4,5 +4,6 @@
     {
         public string PlaylistId { get; set; }
         public string TrackId { get; set; }
+        public int OrderIndex { get; set; }
     }
 }

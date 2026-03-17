@@ -40,8 +40,15 @@ namespace YTMusicApi.Orchestrator.UserPlaylist
             var userPlaylistDto = new UserPlaylistDto();
             userPlaylistDto.UserId = userId;
             userPlaylistDto.PlaylistId = playlistId;
-            
-            return await _userPlaylistRepository.DeletePlaylistFromUserAsync(userPlaylistDto);
+            var deletedPlaylist = await _userPlaylistRepository.DeletePlaylistFromUserAsync(userPlaylistDto);
+
+            var playlist = await _playlistRepository.GetByIdPlaylistAsync(playlistId);
+            if (playlist != null && playlist.Source == PlaylistSource.Optimized)
+            {
+                await _playlistRepository.DeletePlaylistAsync(playlistId);
+            }
+
+            return deletedPlaylist;
         }
     }
 }

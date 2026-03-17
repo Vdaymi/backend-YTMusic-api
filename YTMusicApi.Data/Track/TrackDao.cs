@@ -7,7 +7,7 @@ namespace YTMusicApi.Data.Track
     [Table("tracks")]
     public class TrackDao
     {
-        [Column("track_id"), Key, Length(11, 11)]
+        [Column("track_id"), Key, StringLength(11)]
         public string TrackId { get; set; }
         [Column("category_id")]
         public int CategoryId { get; set; }

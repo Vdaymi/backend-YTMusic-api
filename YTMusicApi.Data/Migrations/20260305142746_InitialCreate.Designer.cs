@@ -2,9 +2,9 @@
 using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
-using Microsoft.EntityFrameworkCore.Metadata;
 using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
+using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 using YTMusicApi.Data;
 
 #nullable disable
@@ -12,7 +12,7 @@ using YTMusicApi.Data;
 namespace YTMusicApi.Data.Migrations
 {
     [DbContext(typeof(SqlDbContext))]
-    [Migration("20260208191255_InitialCreate")]
+    [Migration("20260305142746_InitialCreate")]
     partial class InitialCreate
     {
         /// <inheritdoc />
@@ -21,28 +21,33 @@ namespace YTMusicApi.Data.Migrations
 #pragma warning disable 612, 618
             modelBuilder
                 .HasAnnotation("ProductVersion", "8.0.17")
-                .HasAnnotation("Relational:MaxIdentifierLength", 128);
+                .HasAnnotation("Relational:MaxIdentifierLength", 63);
 
-            SqlServerModelBuilderExtensions.UseIdentityColumns(modelBuilder);
+            NpgsqlModelBuilderExtensions.UseIdentityByDefaultColumns(modelBuilder);
 
             modelBuilder.Entity("YTMusicApi.Data.Playlist.PlaylistDao", b =>
                 {
                     b.Property<string>("PlaylistId")
-                        .HasColumnType("nvarchar(450)")
+                        .HasMaxLength(34)
+                        .HasColumnType("character varying(34)")
                         .HasColumnName("playlist_id");
 
                     b.Property<int?>("ItemCount")
-                        .HasColumnType("int")
+                        .HasColumnType("integer")
                         .HasColumnName("item_count");
+
+                    b.Property<int>("Source")
+                        .HasColumnType("integer")
+                        .HasColumnName("source");
 
                     b.Property<string>("Title")
                         .IsRequired()
-                        .HasColumnType("nvarchar(max)")
+                        .HasColumnType("text")
                         .HasColumnName("title");
 
                     b.Property<string>("СhannelTitle")
                         .IsRequired()
-                        .HasColumnType("nvarchar(max)")
+                        .HasColumnType("text")
                         .HasColumnName("channel_title");
 
                     b.HasKey("PlaylistId");
@@ -50,17 +55,45 @@ namespace YTMusicApi.Data.Migrations
                     b.ToTable("playlists");
                 });
 
+            modelBuilder.Entity("YTMusicApi.Data.Playlist.PlaylistSettingDao", b =>
+                {
+                    b.Property<string>("PlaylistId")
+                        .HasMaxLength(34)
+                        .HasColumnType("character varying(34)")
+                        .HasColumnName("playlist_id");
+
+                    b.Property<int>("Algorithm")
+                        .HasColumnType("integer")
+                        .HasColumnName("algorithm");
+
+                    b.Property<double>("GenreWeight")
+                        .HasColumnType("double precision")
+                        .HasColumnName("genre_weight");
+
+                    b.Property<TimeSpan>("TargetDuration")
+                        .HasColumnType("interval")
+                        .HasColumnName("target_duration");
+
+                    b.HasKey("PlaylistId");
+
+                    b.ToTable("playlist_settings");
+                });
+
             modelBuilder.Entity("YTMusicApi.Data.PlaylistTrack.PlaylistTrackDao", b =>
                 {
                     b.Property<string>("PlaylistId")
-                        .HasColumnType("nvarchar(450)")
+                        .HasColumnType("character varying(34)")
                         .HasColumnName("playlist_id")
                         .HasColumnOrder(0);
 
                     b.Property<string>("TrackId")
-                        .HasColumnType("nvarchar(450)")
+                        .HasColumnType("character varying(11)")
                         .HasColumnName("track_id")
                         .HasColumnOrder(1);
+
+                    b.Property<int>("OrderIndex")
+                        .HasColumnType("integer")
+                        .HasColumnName("order_index");
 
                     b.HasKey("PlaylistId", "TrackId");
 
@@ -72,25 +105,26 @@ namespace YTMusicApi.Data.Migrations
             modelBuilder.Entity("YTMusicApi.Data.Track.TrackDao", b =>
                 {
                     b.Property<string>("TrackId")
-                        .HasColumnType("nvarchar(450)")
+                        .HasMaxLength(11)
+                        .HasColumnType("character varying(11)")
                         .HasColumnName("track_id");
 
                     b.Property<int>("CategoryId")
-                        .HasColumnType("int")
+                        .HasColumnType("integer")
                         .HasColumnName("category_id");
 
                     b.Property<string>("ChannelTitle")
                         .IsRequired()
-                        .HasColumnType("nvarchar(max)")
+                        .HasColumnType("text")
                         .HasColumnName("channel_title");
 
                     b.Property<TimeSpan>("Duration")
-                        .HasColumnType("time")
+                        .HasColumnType("interval")
                         .HasColumnName("duration");
 
                     b.Property<string>("ImageUrl")
                         .IsRequired()
-                        .HasColumnType("nvarchar(max)")
+                        .HasColumnType("text")
                         .HasColumnName("image_url");
 
                     b.Property<long?>("LikeCount")
@@ -98,16 +132,16 @@ namespace YTMusicApi.Data.Migrations
                         .HasColumnName("like_count");
 
                     b.Property<DateTime?>("PublishedAt")
-                        .HasColumnType("datetime2")
+                        .HasColumnType("timestamp with time zone")
                         .HasColumnName("published_at");
 
                     b.Property<string>("Title")
                         .IsRequired()
-                        .HasColumnType("nvarchar(max)")
+                        .HasColumnType("text")
                         .HasColumnName("title");
 
                     b.Property<string>("TopicCategories")
-                        .HasColumnType("nvarchar(max)")
+                        .HasColumnType("text")
                         .HasColumnName("topic_categories");
 
                     b.Property<long?>("ViewCount")
@@ -123,24 +157,25 @@ namespace YTMusicApi.Data.Migrations
                 {
                     b.Property<Guid>("Id")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("uniqueidentifier")
+                        .HasColumnType("uuid")
                         .HasColumnName("id");
 
                     b.Property<string>("Email")
                         .IsRequired()
                         .HasMaxLength(255)
-                        .HasColumnType("nvarchar(255)")
+                        .HasColumnType("character varying(255)")
                         .HasColumnName("email");
 
                     b.Property<string>("PasswordHash")
                         .IsRequired()
                         .HasMaxLength(255)
-                        .HasColumnType("nvarchar(255)")
+                        .HasColumnType("character varying(255)")
                         .HasColumnName("password_hash");
 
                     b.Property<string>("UserName")
                         .IsRequired()
-                        .HasColumnType("nvarchar(max)")
+                        .HasMaxLength(128)
+                        .HasColumnType("character varying(128)")
                         .HasColumnName("user_name");
 
                     b.HasKey("Id");
@@ -151,11 +186,11 @@ namespace YTMusicApi.Data.Migrations
             modelBuilder.Entity("YTMusicApi.Data.UserPlaylist.UserPlaylistDao", b =>
                 {
                     b.Property<Guid>("UserId")
-                        .HasColumnType("uniqueidentifier")
+                        .HasColumnType("uuid")
                         .HasColumnName("user_id");
 
                     b.Property<string>("PlaylistId")
-                        .HasColumnType("nvarchar(450)")
+                        .HasColumnType("character varying(34)")
                         .HasColumnName("playlist_id");
 
                     b.HasKey("UserId", "PlaylistId");
@@ -163,6 +198,17 @@ namespace YTMusicApi.Data.Migrations
                     b.HasIndex("PlaylistId");
 
                     b.ToTable("user_playlists");
+                });
+
+            modelBuilder.Entity("YTMusicApi.Data.Playlist.PlaylistSettingDao", b =>
+                {
+                    b.HasOne("YTMusicApi.Data.Playlist.PlaylistDao", "Playlist")
+                        .WithOne("OptimizationSetting")
+                        .HasForeignKey("YTMusicApi.Data.Playlist.PlaylistSettingDao", "PlaylistId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Playlist");
                 });
 
             modelBuilder.Entity("YTMusicApi.Data.PlaylistTrack.PlaylistTrackDao", b =>
@@ -205,6 +251,8 @@ namespace YTMusicApi.Data.Migrations
 
             modelBuilder.Entity("YTMusicApi.Data.Playlist.PlaylistDao", b =>
                 {
+                    b.Navigation("OptimizationSetting");
+
                     b.Navigation("PlaylistTracks");
 
                     b.Navigation("UserPlaylists");

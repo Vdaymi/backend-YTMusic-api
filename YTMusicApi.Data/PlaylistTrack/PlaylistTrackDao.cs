@@ -13,6 +13,8 @@ namespace YTMusicApi.Data.PlaylistTrack
 
         [Key, Column("track_id", Order = 1)]
         public string TrackId { get; set; }
+        [Column("order_index")]
+        public int OrderIndex { get; set; }
 
         public PlaylistDao Playlist { get; set; }
         public TrackDao Track { get; set; }

@@ -34,10 +34,6 @@ namespace YTMusicApi.Optimizer.Optimization
 
             try
             {
-                // 2. Вибір стратегії (на майбутнє)
-                // Поки що ми ігноруємо request.Algorithm, бо маємо тільки одну реалізацію.
-                // Але тут має бути switch (request.Algorithm) { ... }
-
                 var resultIds = _algorithm.Optimize(request.SourceTracks, request.TimeLimit, request.MaxTracks, request.GenreWeight, request.YearWeight, request.StartTrackId);
 
                 if (!resultIds.Any())

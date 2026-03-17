@@ -6,5 +6,7 @@
         Task<PlaylistDto> GetByIdPlaylistAsync(string playlistId);
         Task<List<PlaylistDto>> GetPlaylistsByIdsAsync(List<string> playlistIds);
         Task<PlaylistDto> UpdatePlaylistAsync(PlaylistDto playlistDto);
+        Task DeletePlaylistAsync(string playlistId);
+        Task PostPlaylistSettingsAsync(PlaylistSettingDto playlistSettingsDto);
     }
 }

@@ -29,13 +29,21 @@ namespace YTMusicApi.Data.Playlist
 
         public async Task<PlaylistDto> GetByIdPlaylistAsync(string id)
         {
-            var playlistDao = await _context.Playlists.AsNoTracking().FirstOrDefaultAsync(p => p.PlaylistId == id);
+            var playlistDao = await _context.Playlists
+                    .Include(p => p.OptimizationSetting)
+                    .AsNoTracking()
+                    .FirstOrDefaultAsync(p => p.PlaylistId == id);
             return _mapper.Map<PlaylistDto>(playlistDao);
         }
 
         public async Task<List<PlaylistDto>> GetPlaylistsByIdsAsync(List<string> playlistIds)
         {
-            var playlistDaos = await _context.Playlists.AsNoTracking().Where(p => playlistIds.Contains(p.PlaylistId)).ToListAsync();
+            var playlistDaos = await _context.Playlists
+                    .Include(p => p.OptimizationSetting)
+                    .AsNoTracking()
+                    .Where(p => playlistIds
+                    .Contains(p.PlaylistId))
+                    .ToListAsync();
 
             return _mapper.Map<List<PlaylistDto>>(playlistDaos);
         }
@@ -46,6 +54,22 @@ namespace YTMusicApi.Data.Playlist
             _context.Playlists.Update(playlistDao);
             await _context.SaveChangesAsync();
             return _mapper.Map<PlaylistDto>(playlistDao); ;
+        }
+        public async Task DeletePlaylistAsync(string playlistId)
+        {
+            var playlistDao = await _context.Playlists.FindAsync(playlistId);
+            if (playlistDao != null)
+            {
+                _context.Playlists.Remove(playlistDao);
+                await _context.SaveChangesAsync();
+            }
+        }
+
+        public async Task PostPlaylistSettingsAsync(PlaylistSettingDto playlistSettingsDto)
+        {
+            var playlistSettingsDao = _mapper.Map<PlaylistSettingDao>(playlistSettingsDto);
+            await _context.PlaylistSettings.AddAsync(playlistSettingsDao);
+            await _context.SaveChangesAsync();
         }
     }
 }

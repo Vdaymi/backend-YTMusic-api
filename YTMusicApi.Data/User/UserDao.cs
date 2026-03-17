@@ -9,7 +9,7 @@ namespace YTMusicApi.Data.User
     {
         [Column("id"), DatabaseGenerated(DatabaseGeneratedOption.Identity)]
         public Guid Id { get; set; }
-        [Column("user_name"), Required, Length(3, 128)]
+        [Column("user_name"), Required, StringLength(128)]
         public string UserName { get; set; }
         [Column("password_hash"), Required, MaxLength(255)]
         public string PasswordHash { get; set; }

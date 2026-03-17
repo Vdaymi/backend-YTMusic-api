@@ -47,6 +47,7 @@ namespace YTMusicApi.Data.PlaylistTrack
         {
             return await _context.PlaylistTracks
                 .Where(pt => pt.PlaylistId == playlistId)
+                .OrderBy(pt => pt.OrderIndex)
                 .Select(pt => pt.TrackId)
                 .ToListAsync();
         }
@@ -55,6 +56,7 @@ namespace YTMusicApi.Data.PlaylistTrack
         {
             var trackDaos = await _context.PlaylistTracks
                  .Where(pt => pt.PlaylistId == playlistId)
+                 .OrderBy(pt => pt.OrderIndex)
                  .Select(pt => pt.Track)
                  .ToListAsync();
 

@@ -87,7 +87,7 @@ namespace YTMusicApi.Data.YouTube
             {
                 PlaylistId = playlist.Id,
                 Title = playlist.Snippet.Title,
-                СhannelTitle = playlist.Snippet.ChannelTitle,
+                ChannelTitle = playlist.Snippet.ChannelTitle,
                 ItemCount = (int)playlist.ContentDetails.ItemCount
             };
         }
@@ -102,7 +102,7 @@ namespace YTMusicApi.Data.YouTube
             {
                 PlaylistId = playlist.Id,
                 Title = playlist.Snippet.Title,
-                СhannelTitle = playlist.Snippet.ChannelTitle,
+                ChannelTitle = playlist.Snippet.ChannelTitle,
                 ItemCount = (int)playlist.ContentDetails.ItemCount
             }).ToList();
         }

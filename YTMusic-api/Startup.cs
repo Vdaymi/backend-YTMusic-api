@@ -93,10 +93,11 @@ namespace YTMusicApi
                 new PlaylistTrackDaoProfile(),
                 new UserDaoProfile(),
                 new UserPlaylistDaoProfile(),
-                new TrackOptimizationDtoProfile()
+                new TrackOptimizationDtoProfile(),
+                new PlaylistSettingDaoProfile()
             }));
             
-            services.AddDbContext<SqlDbContext>(config => config.UseSqlServer(
+            services.AddDbContext<SqlDbContext>(config => config.UseNpgsql(
                 _configuration.GetConnectionString("DefaultConnection")));
             services.Configure<YouTubeSettings>(
                 _configuration.GetSection("YouTube"));
@@ -118,7 +119,8 @@ namespace YTMusicApi
             });
             services.AddHttpClient<IOptimizerClient, OptimizerClient>(client =>
             {
-                client.BaseAddress = new Uri("https://localhost:7209/");
+                var baseUrl = _configuration["OptimizerSettings:BaseUrl"];
+                client.BaseAddress = new Uri(baseUrl);
             });
         }
 

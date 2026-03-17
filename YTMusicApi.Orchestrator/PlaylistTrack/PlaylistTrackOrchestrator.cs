@@ -97,5 +97,20 @@ namespace YTMusicApi.Orchestrator.PlaylistTrack
 
             return trackDtos;
         }
+
+        public async Task PostOptimizedTracksAsync(string playlistId, List<string> trackIds)
+        {
+            int orderIndex = 0;
+            foreach (var trackId in trackIds)
+            {
+                var playlistTrackDto = new PlaylistTrackDto
+                {
+                    PlaylistId = playlistId,
+                    TrackId = trackId,
+                    OrderIndex = orderIndex++ 
+                };
+                await _playlitTrackRepository.PostTrackToPlaylistAsync(playlistTrackDto);
+            }
+        }
     }
 }

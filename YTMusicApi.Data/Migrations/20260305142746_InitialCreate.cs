@@ -15,10 +15,11 @@ namespace YTMusicApi.Data.Migrations
                 name: "playlists",
                 columns: table => new
                 {
-                    playlist_id = table.Column<string>(type: "nvarchar(450)", nullable: false),
-                    title = table.Column<string>(type: "nvarchar(max)", nullable: false),
-                    channel_title = table.Column<string>(type: "nvarchar(max)", nullable: false),
-                    item_count = table.Column<int>(type: "int", nullable: true)
+                    playlist_id = table.Column<string>(type: "character varying(34)", maxLength: 34, nullable: false),
+                    title = table.Column<string>(type: "text", nullable: false),
+                    channel_title = table.Column<string>(type: "text", nullable: false),
+                    item_count = table.Column<int>(type: "integer", nullable: true),
+                    source = table.Column<int>(type: "integer", nullable: false)
                 },
                 constraints: table =>
                 {
@@ -29,16 +30,16 @@ namespace YTMusicApi.Data.Migrations
                 name: "tracks",
                 columns: table => new
                 {
-                    track_id = table.Column<string>(type: "nvarchar(450)", nullable: false),
-                    category_id = table.Column<int>(type: "int", nullable: false),
-                    title = table.Column<string>(type: "nvarchar(max)", nullable: false),
-                    channel_title = table.Column<string>(type: "nvarchar(max)", nullable: false),
+                    track_id = table.Column<string>(type: "character varying(11)", maxLength: 11, nullable: false),
+                    category_id = table.Column<int>(type: "integer", nullable: false),
+                    title = table.Column<string>(type: "text", nullable: false),
+                    channel_title = table.Column<string>(type: "text", nullable: false),
                     view_count = table.Column<long>(type: "bigint", nullable: true),
                     like_count = table.Column<long>(type: "bigint", nullable: true),
-                    duration = table.Column<TimeSpan>(type: "time", nullable: false),
-                    image_url = table.Column<string>(type: "nvarchar(max)", nullable: false),
-                    published_at = table.Column<DateTime>(type: "datetime2", nullable: true),
-                    topic_categories = table.Column<string>(type: "nvarchar(max)", nullable: true)
+                    duration = table.Column<TimeSpan>(type: "interval", nullable: false),
+                    image_url = table.Column<string>(type: "text", nullable: false),
+                    published_at = table.Column<DateTime>(type: "timestamp with time zone", nullable: true),
+                    topic_categories = table.Column<string>(type: "text", nullable: true)
                 },
                 constraints: table =>
                 {
@@ -49,10 +50,10 @@ namespace YTMusicApi.Data.Migrations
                 name: "users",
                 columns: table => new
                 {
-                    id = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
-                    user_name = table.Column<string>(type: "nvarchar(max)", nullable: false),
-                    password_hash = table.Column<string>(type: "nvarchar(255)", maxLength: 255, nullable: false),
-                    email = table.Column<string>(type: "nvarchar(255)", maxLength: 255, nullable: false)
+                    id = table.Column<Guid>(type: "uuid", nullable: false),
+                    user_name = table.Column<string>(type: "character varying(128)", maxLength: 128, nullable: false),
+                    password_hash = table.Column<string>(type: "character varying(255)", maxLength: 255, nullable: false),
+                    email = table.Column<string>(type: "character varying(255)", maxLength: 255, nullable: false)
                 },
                 constraints: table =>
                 {
@@ -60,11 +61,32 @@ namespace YTMusicApi.Data.Migrations
                 });
 
             migrationBuilder.CreateTable(
+                name: "playlist_settings",
+                columns: table => new
+                {
+                    playlist_id = table.Column<string>(type: "character varying(34)", maxLength: 34, nullable: false),
+                    target_duration = table.Column<TimeSpan>(type: "interval", nullable: false),
+                    algorithm = table.Column<int>(type: "integer", nullable: false),
+                    genre_weight = table.Column<double>(type: "double precision", nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_playlist_settings", x => x.playlist_id);
+                    table.ForeignKey(
+                        name: "FK_playlist_settings_playlists_playlist_id",
+                        column: x => x.playlist_id,
+                        principalTable: "playlists",
+                        principalColumn: "playlist_id",
+                        onDelete: ReferentialAction.Cascade);
+                });
+
+            migrationBuilder.CreateTable(
                 name: "playlist_tracks",
                 columns: table => new
                 {
-                    playlist_id = table.Column<string>(type: "nvarchar(450)", nullable: false),
-                    track_id = table.Column<string>(type: "nvarchar(450)", nullable: false)
+                    playlist_id = table.Column<string>(type: "character varying(34)", nullable: false),
+                    track_id = table.Column<string>(type: "character varying(11)", nullable: false),
+                    order_index = table.Column<int>(type: "integer", nullable: false)
                 },
                 constraints: table =>
                 {
@@ -87,8 +109,8 @@ namespace YTMusicApi.Data.Migrations
                 name: "user_playlists",
                 columns: table => new
                 {
-                    user_id = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
-                    playlist_id = table.Column<string>(type: "nvarchar(450)", nullable: false)
+                    user_id = table.Column<Guid>(type: "uuid", nullable: false),
+                    playlist_id = table.Column<string>(type: "character varying(34)", nullable: false)
                 },
                 constraints: table =>
                 {
@@ -121,6 +143,9 @@ namespace YTMusicApi.Data.Migrations
         /// <inheritdoc />
         protected override void Down(MigrationBuilder migrationBuilder)
         {
+            migrationBuilder.DropTable(
+                name: "playlist_settings");
+
             migrationBuilder.DropTable(
                 name: "playlist_tracks");
 
