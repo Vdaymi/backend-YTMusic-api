@@ -1,42 +1,37 @@
 version: "3.9"
 
 services:
-    ytmusicapi:
-        container_name: yt-music-api
-        build:
-              context: .
-              dockerfile: YTMusic-api/Dockerfile
-        ports:
-            - "8080:8080"
-            - "8081:8081"
-        environment:
-             - "ASPNETCORE_URLS=http://+:8080;https://+:8081"
-             - ASPNETCORE_Kestrel__Certificates__Default__Path=/app/certs/https.pfx
-             - ASPNETCORE_Kestrel__Certificates__Default__Password=Vadim123
-        volumes:
-             - ./YTMusic-api/certs/https.pfx:/app/certs/https.pfx:ro
-        networks:
-            - yt-music-api-dev
-        depends_on:
-            - sqlserver
-        restart: on-failure
+  ytmusicapi:
+    container_name: yt-music-api
+    build:
+      context: .
+      dockerfile: YTMusic-api/Dockerfile
+    ports:
+      - "8080:8080" 
+    environment:
+      - ASPNETCORE_ENVIRONMENT=${ASPNETCORE_ENVIRONMENT}
+      - ConnectionStrings__DefaultConnection=${DB_CONNECTION_STRING}
+      - YouTube__ApiKey=${YOUTUBE_API_KEY}
+      - JwtOptions__SecretKey=${JWT_SECRET_KEY}
+      - OptimizerSettings__BaseUrl=http://optimizer:8080
+      - ClientSettings__ClientBaseUrl=${CLIENT_BASE_URL}
+      - EmailSettings__SmtpPassword=${SMTP_PASSWORD}
+      - EmailSettings__SenderEmail=${SMTP_SENDER_EMAIL}
+      - EmailSettings__SmtpUsername=${SMTP_USERNAME}
+    networks:
+      - yt-music-api-net
+    depends_on:
+      - optimizer
+    restart: on-failure
+  optimizer:
+    container_name: yt-music-optimizer
+    build:
+      context: .
+      dockerfile: YTMusicApi.Optimizer/Dockerfile
+    networks:
+      - yt-music-api-net
+    restart: on-failure
 
-    sqlserver:
-        container_name: sqlserver
-        image: mcr.microsoft.com/mssql/server:2022-latest
-        environment:
-            SA_PASSWORD: "ofitfhpwps!"
-            ACCEPT_EULA: "Y"
-        ports:
-            - "1433:1433"
-        volumes:
-            - sqlvolume:/var/opt/mssql
-        networks:
-            - yt-music-api-dev
-
-networks: 
-    yt-music-api-dev:
-        driver: bridge
-
-volumes:
-    sqlvolume:
+networks:
+  yt-music-api-net:
+    driver: bridge

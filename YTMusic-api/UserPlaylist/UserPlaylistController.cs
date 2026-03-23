@@ -1,5 +1,7 @@
 ﻿using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using System.IdentityModel.Tokens.Jwt;
+using System.Security.Claims;
 using YTMusicApi.Model.UserPlaylist;
 using YTMusicApi.Playlist.Contracts;
 
@@ -20,7 +22,7 @@ namespace YTMusicApi.UserPlaylist
         [HttpGet, Authorize]
         public async Task<IActionResult> GetMyPlaylistsAsync()
         {
-            var userIdClaim = User.FindFirst("userId");
+            var userIdClaim = User.FindFirst(JwtRegisteredClaimNames.Sub) ?? User.FindFirst(ClaimTypes.NameIdentifier);
             
             var userId = Guid.Parse(userIdClaim.Value);
 
@@ -31,7 +33,7 @@ namespace YTMusicApi.UserPlaylist
         [HttpDelete("{playlistId}"), Authorize]
         public async Task<IActionResult> DeletePlaylistAsync([FromRoute] PlaylistIdRequest request)
         {
-            var userIdClaim = User.FindFirst("userId");
+            var userIdClaim = User.FindFirst(JwtRegisteredClaimNames.Sub) ?? User.FindFirst(ClaimTypes.NameIdentifier);
             
             var userId = Guid.Parse(userIdClaim.Value);
             

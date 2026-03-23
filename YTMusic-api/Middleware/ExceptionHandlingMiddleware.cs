@@ -1,17 +1,21 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Hosting;
 using System.Net;
 using System.Security.Authentication;
+using System.Text.Json;
 
 namespace YTMusicApi.Middleware
 {
     public class ExceptionHandlingMiddleware
     {
         private readonly RequestDelegate _next;
-        
-        public ExceptionHandlingMiddleware(RequestDelegate next)
+        private readonly IHostEnvironment _env;
+
+        public ExceptionHandlingMiddleware(RequestDelegate next, IHostEnvironment env)
         {
             _next = next;
+            _env = env;
         }
 
         public async Task InvokeAsync(HttpContext httpContext)
@@ -20,65 +24,28 @@ namespace YTMusicApi.Middleware
             {
                 await _next(httpContext);
             }
-            catch (DbUpdateException e)
+            catch (Exception ex)
             {
-                var problemDetails = new ProblemDetails
-                {
-                    Status = (int)HttpStatusCode.NotFound,
-                    Title = "Not Found",
-                    Detail = $"{e.Message}"
-                };
-                httpContext.Response.StatusCode = (int)HttpStatusCode.NotFound;
+                await HandleExceptionAsync(httpContext, ex);
+            }
+        }
 
-                await httpContext.Response.WriteAsJsonAsync(problemDetails);
-            }
-            catch (ArgumentNullException e)
+        private async Task HandleExceptionAsync(HttpContext context, Exception exception)
+        {
+            (HttpStatusCode statusCode, string title, string detail) = exception switch
             {
-                var problemDetails = new ProblemDetails
-                {
-                    Status = (int)HttpStatusCode.NotFound,
-                    Title = "Not Found",
-                    Detail = $"{e.Message}"
-                };
-                httpContext.Response.StatusCode = (int)HttpStatusCode.NotFound;
+                DbUpdateException => (HttpStatusCode.Conflict, "Database Conflict", "A database conflict occurred, which might be due to a duplicate entry."),
+                ArgumentNullException or InvalidOperationException => (HttpStatusCode.BadRequest, "Invalid Request", exception.Message),
+                AuthenticationException => (HttpStatusCode.Unauthorized, "Unauthorized", exception.Message),
+                HttpRequestException => (HttpStatusCode.BadGateway, "External Service Error", "Failed to communicate with an external service."),
+                _ => (HttpStatusCode.InternalServerError, "Internal Server Error", _env.IsDevelopment() ? exception.ToString() : "An unexpected error occurred.")
+            };
 
-                await httpContext.Response.WriteAsJsonAsync(problemDetails);
-            }
-            catch (AuthenticationException e)
-            {
-                var problemDetails = new ProblemDetails
-                {
-                    Status = (int)HttpStatusCode.Unauthorized,
-                    Title = "Unauthorized",
-                    Detail = $"{e.Message}"
-                };
-                httpContext.Response.StatusCode = (int)HttpStatusCode.Unauthorized;
+            context.Response.ContentType = "application/problem+json";
+            context.Response.StatusCode = (int)statusCode;
 
-                await httpContext.Response.WriteAsJsonAsync(problemDetails);
-            }
-            catch (HttpRequestException e)
-            {
-                var problemDetails = new ProblemDetails
-                {
-                    Status = (int)HttpStatusCode.BadGateway,
-                    Title = "External Service Error",
-                    Detail = $"Failed to communicate with Optimizer Service. Please try again later. {e.Message}"
-                };
-                httpContext.Response.StatusCode = (int)HttpStatusCode.BadGateway;
-                await httpContext.Response.WriteAsJsonAsync(problemDetails);
-            }
-            catch (Exception e)
-            {
-                var problemDetails = new ProblemDetails
-                {
-                    Status = (int)HttpStatusCode.InternalServerError,
-                    Title = "Internal Server Error",
-                    Detail = $"{e.Message}"
-                };
-                httpContext.Response.StatusCode = (int)HttpStatusCode.InternalServerError;
-
-                await httpContext.Response.WriteAsJsonAsync(problemDetails);
-            }
+            var problemDetails = new ProblemDetails { Status = (int)statusCode, Title = title, Detail = detail };
+            await context.Response.WriteAsync(JsonSerializer.Serialize(problemDetails));
         }
     }
 }

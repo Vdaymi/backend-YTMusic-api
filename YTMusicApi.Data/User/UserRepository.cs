@@ -31,5 +31,26 @@ namespace YTMusicApi.Data.User
                 .FirstOrDefaultAsync(u => u.Email == email);
             return _mapper.Map<UserDto>(userDao);
         }
+
+        public async Task<UserDto> GetByVerificationTokenAsync(string token)
+        {
+            var userDao = await _context.Users
+                .AsNoTracking()
+                .FirstOrDefaultAsync(u => u.EmailVerificationToken == token);
+            return _mapper.Map<UserDto>(userDao);
+        }
+
+        public async Task UpdateUserAsync(UserDto userDto)
+        {
+            var userDao = await _context.Users.FindAsync(userDto.Id);
+            if (userDao == null)
+            {
+                throw new InvalidOperationException($"User with ID {userDto.Id} not found for update.");
+            }
+
+            _mapper.Map(userDto, userDao);
+
+            await _context.SaveChangesAsync();
+        }
     }
 }

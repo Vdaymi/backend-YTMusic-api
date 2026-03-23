@@ -24,3 +24,5 @@ YTMusic-api/key.pem
 /YTMusicApi.Shared/obj
 /YTMusicApi.Shared/bin
 /.idea
+.env
+*.user

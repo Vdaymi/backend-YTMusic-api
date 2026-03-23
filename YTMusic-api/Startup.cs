@@ -29,6 +29,8 @@ using YTMusicApi.Orchestrator.Track;
 using YTMusicApi.Orchestrator.User;
 using YTMusicApi.Orchestrator.UserPlaylist;
 using YTMusicApi.Platform;
+using YTMusicApi.Platform.Client;
+using YTMusicApi.Platform.Email;
 using YTMusicApi.Platform.Jwt;
 
 namespace YTMusicApi
@@ -48,15 +50,20 @@ namespace YTMusicApi
             services.AddControllers();
             services.AddEndpointsApiExplorer();
             services.AddSwaggerGen();
+            services.AddHttpContextAccessor();
 
             services.Configure<JwtOptions>(_configuration.GetSection("JwtOptions"));
+            services.Configure<ClientSettings>(_configuration.GetSection(ClientSettings.SectionName));
+            services.Configure<EmailSettings>(_configuration.GetSection(EmailSettings.SectionName));
             services.AddApiAuthentication(_configuration);
+            
+            var clientSettings = _configuration.GetSection(ClientSettings.SectionName).Get<ClientSettings>();
             
             services.AddCors(options =>
             {
                 options.AddDefaultPolicy(policy =>
                 {
-                    policy.WithOrigins("http://localhost:5173", "http://localhost", "http://localhost:80", "https://ytmusicplaylists.vercel.app");
+                    policy.WithOrigins(clientSettings?.ClientBaseUrl ?? "http://localhost:5173");
                     policy.AllowAnyHeader();
                     policy.AllowAnyMethod();
                     policy.AllowCredentials();
@@ -85,6 +92,7 @@ namespace YTMusicApi
 
             services.AddScoped<IJwtProvider, JwtProvider>();
             services.AddScoped<IPasswordHasher, PasswordHasher>();
+            services.AddScoped<IEmailSender, SmtpEmailSender>();
 
             services.AddAutoMapper(config => config.AddProfiles(new List<Profile> 
             {   
@@ -134,10 +142,10 @@ namespace YTMusicApi
             app.UseSwaggerUI();
 
 
-            app.UseCors();
             //app.UseHttpsRedirection();
 
             app.UseRouting();
+            app.UseCors();
 
             app.UseCookiePolicy(new CookiePolicyOptions
             {

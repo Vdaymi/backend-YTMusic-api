@@ -1,4 +1,5 @@
 ﻿using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.RateLimiting;
 using YTMusicApi.Model.User;
 using YTMusicApi.User.Contracts;
 
@@ -36,6 +37,21 @@ namespace YTMusicApi.User
             });
 
             return Ok(result.UserName);
+        }
+        
+        [HttpPost("verify-email")]
+        public async Task<IActionResult> VerifyEmail([FromBody] VerificationRequest request)
+        {
+            await _orchestrator.VerifyEmailAsync(request.Token);
+            return Ok(new { Message = "Email successfully verified. You can now log in." });
+        }
+
+        [HttpPost("resend-verification"), EnableRateLimiting("PerUserResendVerificationPolicy")]
+        public async Task<IActionResult> ResendVerificationEmailAsync([FromBody] ResendVerificationRequest request)
+        {
+            await _orchestrator.ResendVerificationEmailAsync(request.Email);
+
+            return Ok(new { Message = "If your email is registered and not verified, a new verification link has been sent." });
         }
 
         [HttpPost("logout")]

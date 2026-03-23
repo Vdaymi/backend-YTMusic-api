@@ -7,6 +7,16 @@ namespace YTMusicApi.Extensions
     public static class RateLimitingExtensions
     {
         public static readonly int updateReplenishmentPeriodFromMinutes = 1;
+
+        private static string GetPartitionId(HttpContext context, string policyName)
+        {
+            var userId = context.User?.FindFirst("sub")?.Value
+                         ?? context.Connection.RemoteIpAddress?.ToString()
+                         ?? "anon";
+
+            return $"{userId}:{policyName}";
+        }
+        
         public static IServiceCollection AddPerUserRateLimiting(this IServiceCollection services)
         {
             services.AddRateLimiter(options =>
@@ -19,11 +29,7 @@ namespace YTMusicApi.Extensions
 
                     var policyName = rateLimitAttr?.PolicyName ?? "default";
 
-                    var userId = context.HttpContext.User?.FindFirst("sub")?.Value
-                                 ?? context.HttpContext.Connection.RemoteIpAddress?.ToString()
-                                 ?? "anon";
-
-                    var key = $"{userId}:{policyName}";
+                    var key = GetPartitionId(context.HttpContext, policyName);
                     if (RateLimitResetStore.Data.TryGetValue(key, out var reset))
                     {
                         var seconds = (int)(reset - DateTime.UtcNow).TotalSeconds;
@@ -40,13 +46,9 @@ namespace YTMusicApi.Extensions
 
                 options.AddPolicy("PerUserUpdatePlaylistPolicy", context =>
                 {
-
                     var policyName = "PerUserUpdatePlaylistPolicy";
-                    var userId = context.User?.FindFirst("sub")?.Value
-                              ?? context.Connection.RemoteIpAddress?.ToString()
-                              ?? "anon";
-
-                    var key = $"{userId}:{policyName}";
+                    
+                    var key = GetPartitionId(context, policyName);
 
                     return RateLimitPartition.GetTokenBucketLimiter(key, _ => new TokenBucketRateLimiterOptions
                     {
@@ -61,11 +63,24 @@ namespace YTMusicApi.Extensions
                 options.AddPolicy("PerUserUpdateTrackPolicy", context =>
                 {
                     var policyName = "PerUserUpdateTrackPolicy";
-                    var userId = context.User?.FindFirst("sub")?.Value
-                              ?? context.Connection.RemoteIpAddress?.ToString()
-                              ?? "anon";
+                    
+                    var key = GetPartitionId(context, policyName);
 
-                    var key = $"{userId}:{policyName}";
+                    return RateLimitPartition.GetTokenBucketLimiter(key, _ => new TokenBucketRateLimiterOptions
+                    {
+                        TokenLimit = 1,
+                        TokensPerPeriod = 1,
+                        ReplenishmentPeriod = TimeSpan.FromMinutes(updateReplenishmentPeriodFromMinutes),
+                        QueueLimit = 0,
+                        AutoReplenishment = true
+                    });
+                });
+                
+                options.AddPolicy("PerUserResendVerificationPolicy", context =>
+                {
+                    var policyName = "PerUserResendVerificationPolicy";
+                    
+                    var key = GetPartitionId(context, policyName);
 
                     return RateLimitPartition.GetTokenBucketLimiter(key, _ => new TokenBucketRateLimiterOptions
                     {
@@ -77,7 +92,6 @@ namespace YTMusicApi.Extensions
                     });
                 });
             });
-
             return services;
         }
 
