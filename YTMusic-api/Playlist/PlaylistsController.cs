@@ -1,9 +1,11 @@
-﻿using Microsoft.AspNetCore.Authorization;
+﻿using System.IdentityModel.Tokens.Jwt;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.RateLimiting;
 using YTMusicApi.Model.Playlist;
 using YTMusicApi.Model.Track;
 using YTMusicApi.Playlist.Contracts;
+using System.Security.Claims;
 
 namespace YTMusicApi.Playlist
 {
@@ -22,7 +24,7 @@ namespace YTMusicApi.Playlist
         [HttpPost, Authorize]
         public async Task<IActionResult> PostPlaylistAsync([FromBody] PlaylistIdRequest request)
         {
-            var userIdClaim = User.FindFirst("userId");
+            var userIdClaim = User.FindFirst(JwtRegisteredClaimNames.Sub) ?? User.FindFirst(ClaimTypes.NameIdentifier);
 
             var userId = Guid.Parse(userIdClaim.Value);
 
@@ -53,6 +55,7 @@ namespace YTMusicApi.Playlist
                                                                               requestSettings.StartTrackId);
             return Ok(optimizedTracks);
         }
+        
         [HttpPost("optimized"), Authorize]
         public async Task<IActionResult> PostOptimizedPlaylistAsync([FromBody] SaveOptimizedPlaylistRequest request)
         {
@@ -63,6 +66,14 @@ namespace YTMusicApi.Playlist
                                                                                request.TrackIds, request.TargetDuration,
                                                                                request.Algorithm, request.GenreWeight);
             return Ok(savedPlaylist);
+        }
+        
+        [HttpGet("{id}/export/csv"), Authorize]
+        public async Task<IActionResult> ExportToCsvAsync(PlaylistIdRequest request)
+        {
+            var fileBytes = await _orchestrator.GetCsvExportAsync(request.PlaylistId);
+            
+            return File(fileBytes, "text/csv", $"playlist_{request.PlaylistId}.csv");
         }
     }
 } 

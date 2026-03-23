@@ -1,4 +1,4 @@
-﻿using System.Net.Http.Json;
+﻿﻿using System.Net.Http.Json;
 using YTMusicApi.Model.Integration;
 using YTMusicApi.Shared.Optimization;
 
@@ -17,23 +17,14 @@ namespace YTMusicApi.Orchestrator.Integration
         {
             var response = await _httpClient.PostAsJsonAsync("api/v1/optimization/optimize", request);
 
-            if (!response.IsSuccessStatusCode)
-            {
-                var errorContent = await response.Content.ReadAsStringAsync();
-
-                return new OptimizationResponse
-                {
-                    Success = false,
-                    ErrorMessage = $"Optimizer Error ({response.StatusCode}): {errorContent}"
-                };
-            }
+            response.EnsureSuccessStatusCode();
 
             var result = await response.Content.ReadFromJsonAsync<OptimizationResponse>();
 
             return result ?? new OptimizationResponse
             {
                 Success = false,
-                ErrorMessage = "Optimizer returned null response."
+                ErrorMessage = "Optimizer returned an empty or invalid response."
             };
         }
     }

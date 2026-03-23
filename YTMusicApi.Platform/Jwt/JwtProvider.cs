@@ -19,7 +19,7 @@ namespace YTMusicApi.Platform.Jwt
 
         public string GenerateToken(UserDto userDto)
         {
-            Claim[] claims = [new("userId", userDto.Id.ToString())];
+            Claim[] claims = [new(JwtRegisteredClaimNames.Sub, userDto.Id.ToString())];
 
             var signingCredentials = new SigningCredentials(
                 new SymmetricSecurityKey(Encoding.UTF8.GetBytes(_options.SecretKey)),

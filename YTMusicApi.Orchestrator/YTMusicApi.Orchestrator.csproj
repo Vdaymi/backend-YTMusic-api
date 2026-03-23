@@ -12,6 +12,7 @@
 
   <ItemGroup>
     <ProjectReference Include="..\YTMusicApi.Model\YTMusicApi.Model.csproj" />
+    <ProjectReference Include="..\YTMusicApi.Platform\YTMusicApi.Platform.csproj" />
     <ProjectReference Include="..\YTMusicApi.Shared\YTMusicApi.Shared.csproj" />
   </ItemGroup>
 

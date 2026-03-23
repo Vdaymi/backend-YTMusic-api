@@ -1,4 +1,4 @@
-﻿using YTMusicApi.Model.Integration;
+﻿﻿using YTMusicApi.Model.Integration;
 using YTMusicApi.Model.Playlist;
 using YTMusicApi.Model.PlaylistTrack;
 using YTMusicApi.Model.Track;
@@ -104,11 +104,7 @@ namespace YTMusicApi.Orchestrator.Playlist
             };
 
             var optimizationResult = await _optimizerClient.OptimizePlaylistAsync(optimizationSettingsDto);
-            if (!optimizationResult.Success)
-            {
-                 throw new InvalidOperationException(optimizationResult.ErrorMessage ?? "Optimization failed.");
-            }
-
+           
             var trackDictionary = sourceTracks.ToDictionary(t => t.TrackId);
             var optimizedTracks = new List<TrackDto>();
 
@@ -122,6 +118,7 @@ namespace YTMusicApi.Orchestrator.Playlist
 
             return optimizedTracks;
         }
+        
         public async Task<PlaylistDto> PostOptimizedPlaylistAsync(Guid userId, string title, string channelTitle, List<string> trackIds, TimeSpan targetDuration, OptimizationAlgorithmType algorithm, double genreWeight)
         {
             string newPlaylistId = "OP" + Guid.NewGuid().ToString("N");
@@ -149,6 +146,31 @@ namespace YTMusicApi.Orchestrator.Playlist
             await _playlistRepository.PostPlaylistSettingsAsync(settingsDto);
 
             return savedPlaylist;
+        }
+
+        public async Task<byte[]> GetCsvExportAsync(string playlistId)
+        {
+            var tracks = await _playlistTrackOrchestrator.GetTracksForPlaylistAsync(playlistId);
+            if (tracks == null || !tracks.Any())
+            {
+                throw new ArgumentNullException(nameof(playlistId), "Playlist is empty or not found.");
+            }
+
+            var sb = new System.Text.StringBuilder();
+            sb.AppendLine("title,artist,album,isrc");
+
+            foreach (var track in tracks)
+            {
+                var title = track.Title?.Replace("\"", "\"\"") ?? "Unknown";
+                var channel = track.ChannelTitle?.Replace("\"", "\"\"") ?? "Unknown"; 
+            
+                sb.AppendLine($"\"{title}\",\"{channel}\",,");
+            }
+            var csvContent = sb.ToString();
+            var preamble = System.Text.Encoding.UTF8.GetPreamble();
+            var contentBytes = System.Text.Encoding.UTF8.GetBytes(csvContent);
+            
+            return preamble.Concat(contentBytes).ToArray();
         }
     }
 }

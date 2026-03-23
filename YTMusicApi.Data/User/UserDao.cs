@@ -15,6 +15,12 @@ namespace YTMusicApi.Data.User
         public string PasswordHash { get; set; }
         [Column("email"), Required, MaxLength(255)]
         public string Email { get; set; }
+        [Column("is_email_verified")]
+        public bool IsEmailVerified { get; set; } = false;
+        [Column("email_verification_token")]
+        public string? EmailVerificationToken { get; set; }
+        [Column("email_verification_token_expires")]
+        public DateTime? EmailVerificationTokenExpires { get; set; }
 
         public ICollection<UserPlaylistDao> UserPlaylists { get; set; } = new List<UserPlaylistDao>();
     }
