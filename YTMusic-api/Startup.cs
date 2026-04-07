@@ -105,20 +105,9 @@ namespace YTMusicApi
                 new PlaylistSettingDaoProfile()
             }));
             
-            services.AddDbContext<SqlDbContext>(config => config.UseNpgsql(
-                _configuration.GetConnectionString("DefaultConnection")));
-            services.Configure<YouTubeSettings>(
-                _configuration.GetSection("YouTube"));
-           
-            services.AddSingleton<YouTubeService>(sp =>
-            {
-                var ytSettings = sp.GetRequiredService<IOptions<YouTubeSettings>>().Value;
-                return new YouTubeService(new BaseClientService.Initializer
-                {
-                    ApiKey = ytSettings.ApiKey,
-                    ApplicationName = ytSettings.ApplicationName
-                });
-            });
+            ConfigureDb(services);
+            ConfigureYouTubeService(services);
+            
             services.Configure<ForwardedHeadersOptions>(options =>
             {
                 options.ForwardedHeaders = ForwardedHeaders.XForwardedFor | ForwardedHeaders.XForwardedProto;
@@ -140,8 +129,7 @@ namespace YTMusicApi
 
             app.UseSwagger();
             app.UseSwaggerUI();
-
-
+            
             //app.UseHttpsRedirection();
 
             app.UseRouting();
@@ -166,6 +154,28 @@ namespace YTMusicApi
             app.UseMiddleware<RateLimitResetMiddleware>();
 
             app.UseEndpoints(action => action.MapControllers());
+        }
+
+        protected virtual void ConfigureDb(IServiceCollection services)
+        {
+            services.AddDbContext<SqlDbContext>(config => config.UseNpgsql(
+                _configuration.GetConnectionString("DefaultConnection")));
+        }
+
+        protected virtual void ConfigureYouTubeService(IServiceCollection services)
+        {
+            services.Configure<YouTubeSettings>(
+            _configuration.GetSection("YouTube"));
+
+            services.AddSingleton<YouTubeService>(sp =>
+            {
+                var ytSettings = sp.GetRequiredService<IOptions<YouTubeSettings>>().Value;
+                return new YouTubeService(new BaseClientService.Initializer
+                {
+                    ApiKey = ytSettings.ApiKey,
+                    ApplicationName = ytSettings.ApplicationName
+                });
+            });
         }
     }
 }

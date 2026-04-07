@@ -1,33 +1,27 @@
-﻿using YTMusicApi.Shared.Optimization;
+﻿using YTMusicApi.Optimizer.Optimization.Models;
+using YTMusicApi.Shared.Optimization;
 
 namespace YTMusicApi.Optimizer.Optimization.Algorithm
 {
     public class GreedyOptimizationAlgorithm : IOptimizationAlgorithm
     {
-        private readonly IScoreEvaluator _scoreEvaluator;
+        public OptimizationAlgorithmType AlgorithmType => OptimizationAlgorithmType.Greedy;
+
         private readonly Random _random = new Random();
-        private const double Penalty = 5.0;
+        private const double Lambda = 5.0; // штраф за різкий перехід
         private const double MaxTimeOverrunSeconds = 30.0;
 
-        public GreedyOptimizationAlgorithm(IScoreEvaluator scoreEvaluator)
-        {
-            _scoreEvaluator = scoreEvaluator;
-        }
-
-        public List<string> Optimize(
-            List<TrackOptimizationDto> sourceTracks,
+        public AlgorithmResult Optimize(
+            OptimizationGraph graph,
             TimeSpan timeLimit,
             int maxTracks,
-            double wGenre,
-            double wYear,
             string? startTrackId = null)
         {
-            if (sourceTracks == null || !sourceTracks.Any())
-                return new List<string>();
+            if (graph.Tracks == null || !graph.Tracks.Any())
+                return new AlgorithmResult();
 
             var resultIds = new List<string>();
-
-            var candidates = new List<TrackOptimizationDto>(sourceTracks);
+            var candidates = new List<TrackOptimizationDto>(graph.Tracks);
 
             double currentPlaylistDuration = 0;
             double maxTimeD = timeLimit.TotalSeconds;
@@ -46,6 +40,7 @@ namespace YTMusicApi.Optimizer.Optimization.Algorithm
 
             resultIds.Add(currentTrack.TrackId);
             currentPlaylistDuration += currentTrack.Duration.TotalSeconds;
+            double totalScore = graph.TrackScores[currentTrack.TrackId];
             candidates.Remove(currentTrack);
 
             while (candidates.Any() && currentPlaylistDuration < maxTimeD && resultIds.Count < maxTracks)
@@ -60,10 +55,10 @@ namespace YTMusicApi.Optimizer.Optimization.Algorithm
                         continue;
                     }
 
-                    double w_j = _scoreEvaluator.CalculateTrackScore(candidate);
-                    double moveCost = _scoreEvaluator.CalculateTransitionCost(currentTrack, candidate, wGenre, wYear);
+                    double w_j = graph.TrackScores[candidate.TrackId];
+                    double moveCost = graph.TransitionCosts[(currentTrack.TrackId, candidate.TrackId)];
 
-                    double f = w_j - (moveCost * Penalty);
+                    double f = w_j / (1.0 + Lambda * moveCost);
 
                     if (f > bestF)
                     {
@@ -79,12 +74,15 @@ namespace YTMusicApi.Optimizer.Optimization.Algorithm
 
                 resultIds.Add(bestNode.TrackId);
                 currentPlaylistDuration += bestNode.Duration.TotalSeconds;
+                
+                double transitionCost = graph.TransitionCosts[(currentTrack.TrackId, bestNode.TrackId)];
+                totalScore += graph.TrackScores[bestNode.TrackId] - (transitionCost * Lambda);
 
                 currentTrack = bestNode;
                 candidates.Remove(bestNode);
             }
 
-            return resultIds;
+            return new AlgorithmResult { TrackIds = resultIds, TotalScore = totalScore };
         }
     }
 }

@@ -24,7 +24,7 @@ namespace YTMusicApi.Orchestrator.PlaylistTrack
             var trackDtos = await _playlitTrackRepository.GetTracksByPlaylistAsync(playlistId);
             if (trackDtos == null || !trackDtos.Any())
             {
-                throw new ArgumentNullException(" Tracks not found for the given playlist.");
+                throw new KeyNotFoundException("Tracks not found for the given playlist.");
             }
             return trackDtos;
         }
@@ -34,10 +34,6 @@ namespace YTMusicApi.Orchestrator.PlaylistTrack
             var playlistTrackDto = new PlaylistTrackDto();
             playlistTrackDto.PlaylistId = playlistId;
             playlistTrackDto.TrackId = trackId;
-            if (playlistTrackDto == null)
-            {
-                throw new ArgumentNullException("Track not found in the databese.");
-            }
 
             return await _playlitTrackRepository.PostTrackToPlaylistAsync(playlistTrackDto);
         }
@@ -47,10 +43,7 @@ namespace YTMusicApi.Orchestrator.PlaylistTrack
             var playlistTrackDto = new PlaylistTrackDto();
             playlistTrackDto.PlaylistId = playlistId;
             playlistTrackDto.TrackId = trackId;
-            if (playlistTrackDto == null)
-            {
-                throw new ArgumentNullException("Track not found in the databese.");
-            }
+            
             return await _playlitTrackRepository.DeleteTrackFromPlaylistAsync(playlistTrackDto);
         }
 
@@ -88,7 +81,7 @@ namespace YTMusicApi.Orchestrator.PlaylistTrack
             var dbTrackIds = await _playlitTrackRepository.GetTrackIdsByPlaylistAsync(playlistId);
             if(dbTrackIds == null || !dbTrackIds.Any())
             {
-                throw new ArgumentNullException("Playlist not found in the databese.");
+                throw new KeyNotFoundException("Playlist not found in the database.");
             }
             var trackDtos = await _youTubeRepository.GetTracksAsync(dbTrackIds);
 

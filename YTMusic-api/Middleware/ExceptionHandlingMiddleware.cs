@@ -34,8 +34,11 @@ namespace YTMusicApi.Middleware
         {
             (HttpStatusCode statusCode, string title, string detail) = exception switch
             {
+                KeyNotFoundException => (HttpStatusCode.NotFound, "Resource Not Found", exception.Message),
+                UnauthorizedAccessException => (HttpStatusCode.Forbidden, "Access Denied", exception.Message),
                 DbUpdateException => (HttpStatusCode.Conflict, "Database Conflict", "A database conflict occurred, which might be due to a duplicate entry."),
-                ArgumentNullException or InvalidOperationException => (HttpStatusCode.BadRequest, "Invalid Request", exception.Message),
+                ArgumentException or ArgumentNullException => (HttpStatusCode.BadRequest, "Invalid Argument", exception.Message),
+                InvalidOperationException => (HttpStatusCode.BadRequest, "Invalid Operation", exception.Message),
                 AuthenticationException => (HttpStatusCode.Unauthorized, "Unauthorized", exception.Message),
                 HttpRequestException => (HttpStatusCode.BadGateway, "External Service Error", "Failed to communicate with an external service."),
                 _ => (HttpStatusCode.InternalServerError, "Internal Server Error", _env.IsDevelopment() ? exception.ToString() : "An unexpected error occurred.")

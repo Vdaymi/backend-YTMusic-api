@@ -26,3 +26,7 @@ YTMusic-api/key.pem
 /.idea
 .env
 *.user
+/YTMusicApi.IntegrationTest/bin
+/YTMusicApi.IntegrationTest/obj
+/YTMusicApi.Orchestrator.Tests/bin
+/YTMusicApi.Orchestrator.Tests/obj
