@@ -1,7 +1,7 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio Version 18
-VisualStudioVersion = 18.2.11415.280 d18.0
+VisualStudioVersion = 18.2.11415.280
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "YTMusicApi", "YTMusic-api\YTMusicApi.csproj", "{12AE1EF2-6F06-4288-9CD8-A36EB7AA1114}"
 EndProject
@@ -18,6 +18,12 @@ EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "YTMusicApi.Optimizer", "YTMusicApi.Optimizer\YTMusicApi.Optimizer.csproj", "{9B46A72F-F6BB-465D-89FC-ED01309D73DA}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "YTMusicApi.Shared", "YTMusicApi.Shared\YTMusicApi.Shared.csproj", "{58089E05-8303-4D96-83BF-C13827664F0A}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Tests", "Tests", "{74BF57FB-E7A6-4D15-A1BE-AA60614BD209}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "YTMusicApi.Orchestrator.Tests", "YTMusicApi.Orchestrator.Tests\YTMusicApi.Orchestrator.Tests.csproj", "{8EC60EE3-8AB8-4F39-9396-DD08E3A9A5B7}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "YTMusicApi.IntegrationTest", "YTMusicApi.IntegrationTest\YTMusicApi.IntegrationTest.csproj", "{7B3CB205-5B4F-42DA-9639-46DC8E63CEE8}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -57,9 +63,21 @@ Global
 		{58089E05-8303-4D96-83BF-C13827664F0A}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{58089E05-8303-4D96-83BF-C13827664F0A}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{58089E05-8303-4D96-83BF-C13827664F0A}.Release|Any CPU.Build.0 = Release|Any CPU
+		{8EC60EE3-8AB8-4F39-9396-DD08E3A9A5B7}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{8EC60EE3-8AB8-4F39-9396-DD08E3A9A5B7}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{8EC60EE3-8AB8-4F39-9396-DD08E3A9A5B7}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{8EC60EE3-8AB8-4F39-9396-DD08E3A9A5B7}.Release|Any CPU.Build.0 = Release|Any CPU
+		{7B3CB205-5B4F-42DA-9639-46DC8E63CEE8}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{7B3CB205-5B4F-42DA-9639-46DC8E63CEE8}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{7B3CB205-5B4F-42DA-9639-46DC8E63CEE8}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{7B3CB205-5B4F-42DA-9639-46DC8E63CEE8}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(NestedProjects) = preSolution
+		{8EC60EE3-8AB8-4F39-9396-DD08E3A9A5B7} = {74BF57FB-E7A6-4D15-A1BE-AA60614BD209}
+		{7B3CB205-5B4F-42DA-9639-46DC8E63CEE8} = {74BF57FB-E7A6-4D15-A1BE-AA60614BD209}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {BF577B4D-8856-4DE9-8F8F-4B679DC46F55}

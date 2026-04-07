@@ -45,7 +45,7 @@ namespace YTMusicApi.Orchestrator.Playlist
             }
             var youTubePlaylist = await _youTubeRepository.GetPlaylistAsync(playlistId);
             if (youTubePlaylist == null)
-                throw new ArgumentNullException("Playlist not found on YouTube Music.");
+                throw new KeyNotFoundException("Playlist not found on YouTube Music.");
 
             var savedPlaylist = await _playlistRepository.PostPlaylistAsync(youTubePlaylist);
 
@@ -61,7 +61,7 @@ namespace YTMusicApi.Orchestrator.Playlist
             var playlistDto = await _playlistRepository.GetByIdPlaylistAsync(playlistId);
             if (playlistDto == null)
             {
-                throw new ArgumentNullException("Playlist not found in the database.");
+                throw new KeyNotFoundException("Playlist not found in the database.");
             }
             return playlistDto;
         }
@@ -75,7 +75,7 @@ namespace YTMusicApi.Orchestrator.Playlist
             var playlistDto = await _youTubeRepository.GetPlaylistAsync(playlistId);
             if (playlistDto == null)
             {
-                throw new ArgumentNullException("Playlist not found on YouTube Music.");
+                throw new KeyNotFoundException("Playlist not found on YouTube Music.");
             }
             var updatedPlaylist = await _playlistRepository.UpdatePlaylistAsync(playlistDto);
             
@@ -84,12 +84,12 @@ namespace YTMusicApi.Orchestrator.Playlist
             return updatedPlaylist;
         }
 
-        public async Task<List<TrackDto>> GetOptimizedTracksAsync(string playlistId, TimeSpan timeLimit, int? maxTracks, OptimizationAlgorithmType algorithm, double genreWeight, string? startTrackId)
+        public async Task<OptimizedPlaylistResultDto> GetOptimizedTracksAsync(string playlistId, TimeSpan timeLimit, int? maxTracks, OptimizationAlgorithmType algorithm, double genreWeight, string? startTrackId)
         {
             var sourceTracks = await _playlistTrackOrchestrator.GetTracksForPlaylistAsync(playlistId);
             if (sourceTracks == null || !sourceTracks.Any())
             {
-                throw new ArgumentNullException("Source playlist is empty or not found.");
+                throw new KeyNotFoundException("Source playlist is empty or not found.");
             }
             
             var optimizationSettingsDto = new OptimizationSettingsDto
@@ -116,7 +116,12 @@ namespace YTMusicApi.Orchestrator.Playlist
                 }
             }
 
-            return optimizedTracks;
+            return new OptimizedPlaylistResultDto()
+            {
+                Tracks = optimizedTracks,
+                TotalScore = optimizationResult.TotalScore,
+                ExecutionTime = optimizationResult.ExecutionTime
+            };
         }
         
         public async Task<PlaylistDto> PostOptimizedPlaylistAsync(Guid userId, string title, string channelTitle, List<string> trackIds, TimeSpan targetDuration, OptimizationAlgorithmType algorithm, double genreWeight)
@@ -153,7 +158,7 @@ namespace YTMusicApi.Orchestrator.Playlist
             var tracks = await _playlistTrackOrchestrator.GetTracksForPlaylistAsync(playlistId);
             if (tracks == null || !tracks.Any())
             {
-                throw new ArgumentNullException(nameof(playlistId), "Playlist is empty or not found.");
+                throw new KeyNotFoundException("Playlist is empty or not found.");
             }
 
             var sb = new System.Text.StringBuilder();

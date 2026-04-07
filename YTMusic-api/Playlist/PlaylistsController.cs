@@ -47,28 +47,29 @@ namespace YTMusicApi.Playlist
         }
 
         [HttpPost("{playlistId}/optimize"), Authorize]
-        public async Task<ActionResult<List<TrackDto>>> OptimizePlaylistAsync(string playlistId, [FromBody] OptimizationRequest requestSettings)
+        public async Task<IActionResult> OptimizePlaylistAsync(string playlistId, [FromBody] OptimizationRequest requestSettings)
         {
-            var optimizedTracks = await _orchestrator.GetOptimizedTracksAsync(playlistId, requestSettings.TimeLimit,
+            var optimizedResult = await _orchestrator.GetOptimizedTracksAsync(playlistId, requestSettings.TimeLimit,
                                                                               requestSettings.MaxTracks, requestSettings.Algorithm,
                                                                               requestSettings.GenreWeight, 
                                                                               requestSettings.StartTrackId);
-            return Ok(optimizedTracks);
+            return Ok(optimizedResult);
         }
         
         [HttpPost("optimized"), Authorize]
         public async Task<IActionResult> PostOptimizedPlaylistAsync([FromBody] SaveOptimizedPlaylistRequest request)
         {
-            var userIdClaim = User.FindFirst("userId");
-            var userId = Guid.Parse(userIdClaim.Value);
+            var userIdClaim = User.FindFirst(JwtRegisteredClaimNames.Sub) ?? User.FindFirst(ClaimTypes.NameIdentifier);
 
+            var userId = Guid.Parse(userIdClaim.Value);
+            
             var savedPlaylist = await _orchestrator.PostOptimizedPlaylistAsync(userId, request.Title, request.ChannelTitle,
                                                                                request.TrackIds, request.TargetDuration,
                                                                                request.Algorithm, request.GenreWeight);
             return Ok(savedPlaylist);
         }
         
-        [HttpGet("{id}/export/csv"), Authorize]
+        [HttpGet("{playlistId}/export/csv"), Authorize]
         public async Task<IActionResult> ExportToCsvAsync(PlaylistIdRequest request)
         {
             var fileBytes = await _orchestrator.GetCsvExportAsync(request.PlaylistId);

@@ -1,6 +1,7 @@
 ﻿using Google.Apis.YouTube.v3;
 using Google.Apis.YouTube.v3.Data;
 using System.Xml;
+using System.Text.RegularExpressions;
 using YTMusicApi.Model.Playlist;
 using YTMusicApi.Model.Track;
 using YTMusicApi.Model.YouTube;
@@ -35,7 +36,7 @@ namespace YTMusicApi.Data.YouTube
                 LikeCount = (long?)track.Statistics.LikeCount ?? 0,
                 Duration = XmlConvert.ToTimeSpan(track.ContentDetails.Duration),
                 ImageUrl = track.Snippet.Thumbnails.Medium.Url,
-                PublishedAt = track.Snippet.PublishedAtDateTimeOffset?.UtcDateTime,
+                PublishedAt = ExtractReleaseDate(track.Snippet.Description, track.Snippet.PublishedAtDateTimeOffset?.UtcDateTime),
                 TopicCategories = track.TopicDetails?.TopicCategories != null
                     ? string.Join(",", track.TopicDetails.TopicCategories
                         .Select(url => url.Split('/').Last().Replace("_", " ")))
@@ -64,7 +65,7 @@ namespace YTMusicApi.Data.YouTube
                     LikeCount = (long?)track.Statistics.LikeCount ?? 0,
                     Duration = XmlConvert.ToTimeSpan(track.ContentDetails.Duration),
                     ImageUrl = track.Snippet.Thumbnails.Medium.Url,
-                    PublishedAt = track.Snippet.PublishedAtDateTimeOffset?.UtcDateTime,
+                    PublishedAt = ExtractReleaseDate(track.Snippet.Description, track.Snippet.PublishedAtDateTimeOffset?.UtcDateTime),
                     TopicCategories = track.TopicDetails?.TopicCategories != null
                     ? string.Join(",", track.TopicDetails.TopicCategories
                         .Select(url => url.Split('/').Last().Replace("_", " ")))
@@ -74,7 +75,6 @@ namespace YTMusicApi.Data.YouTube
 
             return result;
         }
-
 
         public async Task<PlaylistDto> GetPlaylistAsync(string playlistId)
         {
@@ -131,6 +131,32 @@ namespace YTMusicApi.Data.YouTube
             while (!string.IsNullOrEmpty(nextPageToken));
 
             return videoIds;
+        }
+
+        private static DateTime? ExtractReleaseDate(string? description, DateTime? fallbackDate)
+        {
+            if (string.IsNullOrWhiteSpace(description))
+                return fallbackDate;
+
+            var releasedOnMatch = Regex.Match(description, @"Released on:\s*(?<year>\d{4})-(?<month>\d{2})-(?<day>\d{2})");
+            if (releasedOnMatch.Success)
+            {
+                if (int.TryParse(releasedOnMatch.Groups["year"].Value, out int year) &&
+                    int.TryParse(releasedOnMatch.Groups["month"].Value, out int month) &&
+                    int.TryParse(releasedOnMatch.Groups["day"].Value, out int day))
+                {
+                    try { return new DateTime(year, month, day, 0, 0, 0, DateTimeKind.Utc); }
+                    catch { }
+                }
+            }
+
+            var phonogramMatch = Regex.Match(description, @"℗\s*(?<year>\d{4})");
+            if (phonogramMatch.Success && int.TryParse(phonogramMatch.Groups["year"].Value, out int phYear))
+            {
+                return new DateTime(phYear, 1, 1, 0, 0, 0, DateTimeKind.Utc);
+            }
+
+            return fallbackDate;
         }
     }
 }

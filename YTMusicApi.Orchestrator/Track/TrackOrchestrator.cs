@@ -21,7 +21,7 @@ namespace YTMusicApi.Orchestrator.Track
             var track = await _trackRepository.GetByIdTrackAsync(trackId);
             if (track == null) 
             {
-                throw new ArgumentNullException("Track not found in the database.");
+                throw new KeyNotFoundException("Track not found in the database.");
             }
             return track;
         }

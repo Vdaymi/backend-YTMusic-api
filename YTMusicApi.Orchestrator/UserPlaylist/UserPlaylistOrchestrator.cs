@@ -37,12 +37,17 @@ namespace YTMusicApi.Orchestrator.UserPlaylist
 
         public async Task<UserPlaylistDto> DeletePlaylistFromUserAsync(Guid userId, string playlistId)
         {
+            var playlist = await _playlistRepository.GetByIdPlaylistAsync(playlistId);
+            if (playlist == null)
+            {
+                throw new KeyNotFoundException("Playlist not found in Database");
+            }
+
             var userPlaylistDto = new UserPlaylistDto();
             userPlaylistDto.UserId = userId;
             userPlaylistDto.PlaylistId = playlistId;
             var deletedPlaylist = await _userPlaylistRepository.DeletePlaylistFromUserAsync(userPlaylistDto);
-
-            var playlist = await _playlistRepository.GetByIdPlaylistAsync(playlistId);
+            
             if (playlist != null && playlist.Source == PlaylistSource.Optimized)
             {
                 await _playlistRepository.DeletePlaylistAsync(playlistId);

@@ -3,15 +3,15 @@ using YTMusicApi.Optimizer.Optimization.Algorithm;
 
 var builder = WebApplication.CreateBuilder(args);
 
-// Add services to the container.
-
 builder.Services.AddControllers();
-// Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
+
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 
-builder.Services.AddSingleton<IScoreEvaluator, ScoreEvaluator>();
-builder.Services.AddTransient<IOptimizationAlgorithm, GreedyOptimizationAlgorithm>();
+builder.Services.AddScoped<IOptimizationAlgorithm, GreedyOptimizationAlgorithm>();
+builder.Services.AddScoped<IOptimizationAlgorithm, AntColonyOptimizationAlgorithm>();
+
+builder.Services.AddScoped<IScoreEvaluator, ScoreEvaluator>();
 builder.Services.AddScoped<IOptimizationOrchestrator, OptimizationOrchestrator>();
 
 var app = builder.Build();
