@@ -30,3 +30,5 @@ jobs:
 
     - name: Run Integration Tests
       run: dotnet test YTMusicApi.IntegrationTest/YTMusicApi.IntegrationTest.csproj --no-build --configuration Release
+      env:
+        JwtOptions__SecretKey: ${{ secrets.JWT_SECRET_KEY }}
