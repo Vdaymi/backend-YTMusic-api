@@ -87,7 +87,7 @@ The project is fully containerized, making it easy to get up and running.
 Create a `.env` file in the project's root directory. You can copy the contents from `.env.example` and fill in your values.
  
 ```dotenv
- # .env
+ # .env.example
  
  # ASP.NET Core environment (Development or Production)
  ASPNETCORE_ENVIRONMENT=Development
