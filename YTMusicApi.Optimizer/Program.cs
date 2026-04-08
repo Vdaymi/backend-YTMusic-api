@@ -14,6 +14,8 @@ builder.Services.AddScoped<IOptimizationAlgorithm, AntColonyOptimizationAlgorith
 builder.Services.AddScoped<IScoreEvaluator, ScoreEvaluator>();
 builder.Services.AddScoped<IOptimizationOrchestrator, OptimizationOrchestrator>();
 
+builder.Services.AddHealthChecks();
+
 var app = builder.Build();
 
 if (app.Environment.IsDevelopment())
@@ -27,5 +29,6 @@ app.UseHttpsRedirection();
 app.UseAuthorization();
 
 app.MapControllers();
+app.MapHealthChecks("/health");
 
 app.Run();

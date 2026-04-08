@@ -1,7 +1,9 @@
 ﻿using AutoMapper;
 using Google.Apis.Services;
 using Google.Apis.YouTube.v3;
+using HealthChecks.UI.Client;
 using Microsoft.AspNetCore.CookiePolicy;
+using Microsoft.AspNetCore.Diagnostics.HealthChecks;
 using Microsoft.AspNetCore.HttpOverrides;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Options;
@@ -108,6 +110,12 @@ namespace YTMusicApi
             ConfigureDb(services);
             ConfigureYouTubeService(services);
             
+            var optimizerBaseUrl = _configuration["OptimizerSettings:BaseUrl"];
+            
+            services.AddHealthChecks()
+                .AddDbContextCheck<SqlDbContext>("Database", tags: new[] { "db" })
+                .AddUrlGroup(new Uri($"{optimizerBaseUrl}/health"), name: "Optimizer Service", tags: new[] { "services" });
+            
             services.Configure<ForwardedHeadersOptions>(options =>
             {
                 options.ForwardedHeaders = ForwardedHeaders.XForwardedFor | ForwardedHeaders.XForwardedProto;
@@ -116,8 +124,7 @@ namespace YTMusicApi
             });
             services.AddHttpClient<IOptimizerClient, OptimizerClient>(client =>
             {
-                var baseUrl = _configuration["OptimizerSettings:BaseUrl"];
-                client.BaseAddress = new Uri(baseUrl);
+                client.BaseAddress = new Uri(optimizerBaseUrl);
             });
         }
 
@@ -153,7 +160,14 @@ namespace YTMusicApi
             app.UsePerUserRateLimiting();
             app.UseMiddleware<RateLimitResetMiddleware>();
 
-            app.UseEndpoints(action => action.MapControllers());
+            app.UseEndpoints(endpoints => 
+            {
+                endpoints.MapControllers();
+                endpoints.MapHealthChecks("/health", new HealthCheckOptions
+                {
+                    ResponseWriter = UIResponseWriter.WriteHealthCheckUIResponse
+                });
+            });
         }
 
         protected virtual void ConfigureDb(IServiceCollection services)
