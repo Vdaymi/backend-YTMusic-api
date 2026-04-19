@@ -8,6 +8,8 @@ using Microsoft.AspNetCore.HttpOverrides;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Options;
 using YTMusicApi.Data;
+using YTMusicApi.Data.MessageBroker;
+using YTMusicApi.Data.Optimization;
 using YTMusicApi.Data.Playlist;
 using YTMusicApi.Data.PlaylistTrack;
 using YTMusicApi.Data.Track;
@@ -17,14 +19,16 @@ using YTMusicApi.Data.YouTube;
 using YTMusicApi.Extensions;
 using YTMusicApi.Middleware;
 using YTMusicApi.Model.Auth;
-using YTMusicApi.Model.Integration;
 using YTMusicApi.Model.Playlist;
 using YTMusicApi.Model.PlaylistTrack;
 using YTMusicApi.Model.Track;
 using YTMusicApi.Model.User;
 using YTMusicApi.Model.UserPlaylist;
 using YTMusicApi.Model.YouTube;
+using YTMusicApi.Model.MessageBroker;
+using YTMusicApi.Model.Optimization;
 using YTMusicApi.Orchestrator.Integration;
+using YTMusicApi.Orchestrator.Optimization;
 using YTMusicApi.Orchestrator.Playlist;
 using YTMusicApi.Orchestrator.PlaylistTrack;
 using YTMusicApi.Orchestrator.Track;
@@ -33,6 +37,7 @@ using YTMusicApi.Orchestrator.UserPlaylist;
 using YTMusicApi.Platform;
 using YTMusicApi.Platform.Client;
 using YTMusicApi.Platform.Email;
+using YTMusicApi.Platform.MessageBroker;
 using YTMusicApi.Platform.Jwt;
 
 namespace YTMusicApi
@@ -57,6 +62,7 @@ namespace YTMusicApi
             services.Configure<JwtOptions>(_configuration.GetSection("JwtOptions"));
             services.Configure<ClientSettings>(_configuration.GetSection(ClientSettings.SectionName));
             services.Configure<EmailSettings>(_configuration.GetSection(EmailSettings.SectionName));
+            services.Configure<RabbitMqSettings>(_configuration.GetSection("RabbitMq"));
             services.AddApiAuthentication(_configuration);
             
             var clientSettings = _configuration.GetSection(ClientSettings.SectionName).Get<ClientSettings>();
@@ -91,10 +97,20 @@ namespace YTMusicApi
             
             services.AddScoped<IUserPlaylistRepository, UserPlaylistRepository>();
             services.AddScoped<IUserPlaylistOrchestrator, UserPlaylistOrchestrator>();
+            
+            services.AddScoped<IOptimizationTaskOrchestrator, OptimizationTaskOrchestrator>();
+            services.AddScoped<IOptimizationRepository, OptimizationRepository>();
 
             services.AddScoped<IJwtProvider, JwtProvider>();
             services.AddScoped<IPasswordHasher, PasswordHasher>();
             services.AddScoped<IEmailSender, SmtpEmailSender>();
+
+            services.AddSingleton<IMessagePublisher, RabbitMqPublisher>();
+            
+            services.AddStackExchangeRedisCache(options => {
+                options.Configuration = _configuration["Redis:ConnectionString"];
+                options.InstanceName = "YTMusicApi_";
+            });
 
             services.AddAutoMapper(config => config.AddProfiles(new List<Profile> 
             {   
@@ -104,27 +120,24 @@ namespace YTMusicApi
                 new UserDaoProfile(),
                 new UserPlaylistDaoProfile(),
                 new TrackOptimizationDtoProfile(),
-                new PlaylistSettingDaoProfile()
+                new PlaylistSettingDaoProfile(),
+                new OptimizationTaskDaoProfile(),
+                new OutboxMessageDaoProfile()
             }));
+            
+            services.AddHostedService<OutboxMessageRelayService>();
+            services.AddHostedService<OptimizationResultConsumer>();
             
             ConfigureDb(services);
             ConfigureYouTubeService(services);
             
-            var optimizerBaseUrl = _configuration["OptimizerSettings:BaseUrl"];
-            
-            services.AddHealthChecks()
-                .AddDbContextCheck<SqlDbContext>("Database", tags: new[] { "db" })
-                .AddUrlGroup(new Uri($"{optimizerBaseUrl}/health"), name: "Optimizer Service", tags: new[] { "services" });
+            services.AddHealthChecks().AddDbContextCheck<SqlDbContext>("Database", tags: new[] { "db" });
             
             services.Configure<ForwardedHeadersOptions>(options =>
             {
                 options.ForwardedHeaders = ForwardedHeaders.XForwardedFor | ForwardedHeaders.XForwardedProto;
                 options.KnownNetworks.Clear();
                 options.KnownProxies.Clear();
-            });
-            services.AddHttpClient<IOptimizerClient, OptimizerClient>(client =>
-            {
-                client.BaseAddress = new Uri(optimizerBaseUrl);
             });
         }
 

@@ -6,6 +6,7 @@ using YTMusicApi.Model.Playlist;
 using YTMusicApi.Model.Track;
 using YTMusicApi.Playlist.Contracts;
 using System.Security.Claims;
+using YTMusicApi.Model.Optimization;
 
 namespace YTMusicApi.Playlist
 {
@@ -14,11 +15,15 @@ namespace YTMusicApi.Playlist
     public class PlaylistsController : ControllerBase
     {
         private readonly IPlaylistOrchestrator _orchestrator;
+        private readonly IOptimizationTaskOrchestrator _taskOrchestrator;
+        
 
         public PlaylistsController(
-            IPlaylistOrchestrator orchestrator)
+            IPlaylistOrchestrator orchestrator,
+            IOptimizationTaskOrchestrator taskOrchestrator)
         {
             _orchestrator = orchestrator;
+            _taskOrchestrator = taskOrchestrator;
         }
 
         [HttpPost, Authorize]
@@ -49,11 +54,27 @@ namespace YTMusicApi.Playlist
         [HttpPost("{playlistId}/optimize"), Authorize]
         public async Task<IActionResult> OptimizePlaylistAsync(string playlistId, [FromBody] OptimizationRequest requestSettings)
         {
-            var optimizedResult = await _orchestrator.GetOptimizedTracksAsync(playlistId, requestSettings.TimeLimit,
-                                                                              requestSettings.MaxTracks, requestSettings.Algorithm,
-                                                                              requestSettings.GenreWeight, 
-                                                                              requestSettings.StartTrackId);
-            return Ok(optimizedResult);
+            var userIdClaim = User.FindFirst(JwtRegisteredClaimNames.Sub) ?? User.FindFirst(ClaimTypes.NameIdentifier);
+
+            var userId = Guid.Parse(userIdClaim.Value);
+ 
+            var taskId = await _orchestrator.InitiateOptimizationAsync(playlistId, userId, requestSettings.TimeLimit,
+                                                                            requestSettings.MaxTracks, requestSettings.Algorithm,
+                                                                            requestSettings.GenreWeight, requestSettings.StartTrackId);
+ 
+            return Accepted(new { TaskId = taskId, Message = "Optimization task has been successfully queued." });
+
+        }
+
+        [HttpGet("optimization/{taskId}"), Authorize]
+        public async Task<IActionResult> GetOptimizationStatusAsync(Guid taskId)
+        {
+            var userIdClaim = User.FindFirst(JwtRegisteredClaimNames.Sub) ?? User.FindFirst(ClaimTypes.NameIdentifier);
+
+            var userId = Guid.Parse(userIdClaim.Value);
+            
+            var status = await _taskOrchestrator.GetOptimizationStatusAsync(taskId, userId);
+            return  Ok(status);
         }
         
         [HttpPost("optimized"), Authorize]

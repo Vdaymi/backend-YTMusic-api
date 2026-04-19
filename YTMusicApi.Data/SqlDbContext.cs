@@ -1,9 +1,11 @@
-﻿using Microsoft.EntityFrameworkCore;
+﻿﻿﻿using Microsoft.EntityFrameworkCore;
 using YTMusicApi.Data.Playlist;
+using YTMusicApi.Data.Optimization;
 using YTMusicApi.Data.PlaylistTrack;
 using YTMusicApi.Data.Track;
 using YTMusicApi.Data.User;
 using YTMusicApi.Data.UserPlaylist;
+using YTMusicApi.Data.MessageBroker;
 
 namespace YTMusicApi.Data
 {
@@ -18,6 +20,8 @@ namespace YTMusicApi.Data
         public virtual DbSet<PlaylistTrackDao> PlaylistTracks { get; set; }
         public virtual DbSet<UserPlaylistDao> UserPlaylists { get; set; }
         public virtual DbSet<PlaylistSettingDao> PlaylistSettings { get; set; }
+        public virtual DbSet<OptimizationTaskDao> OptimizationTasks { get; set; }
+        public virtual DbSet<OutboxMessageDao> OutboxMessages { get; set; }
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
             base.OnModelCreating(modelBuilder);

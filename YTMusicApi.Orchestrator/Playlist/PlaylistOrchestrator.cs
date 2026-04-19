@@ -1,4 +1,5 @@
-﻿﻿using YTMusicApi.Model.Integration;
+﻿﻿using System.Text.Json;
+ using YTMusicApi.Model.Integration;
 using YTMusicApi.Model.Playlist;
 using YTMusicApi.Model.PlaylistTrack;
 using YTMusicApi.Model.Track;
@@ -6,6 +7,10 @@ using YTMusicApi.Model.UserPlaylist;
 using YTMusicApi.Model.YouTube;
 using YTMusicApi.Shared.Optimization;
 using AutoMapper;
+using YTMusicApi.Model.MessageBroker;
+using YTMusicApi.Model.Optimization;
+using YTMusicApi.Shared.MessageBroker;
+using YTMusicApi.Shared.Messaging;
 
 namespace YTMusicApi.Orchestrator.Playlist
 {
@@ -13,25 +18,24 @@ namespace YTMusicApi.Orchestrator.Playlist
     {
         private readonly IYouTubeRepository _youTubeRepository;
         private readonly IPlaylistRepository _playlistRepository;
+        private readonly IOptimizationRepository _optimizationRepository;
         private readonly IPlaylistTrackOrchestrator _playlistTrackOrchestrator;
         private readonly IUserPlaylistOrchestrator _userPlaylistOrchestrator;
-
-        private readonly IOptimizerClient _optimizerClient;
         private readonly IMapper _mapper;
 
         public PlaylistOrchestrator(
             IYouTubeRepository youTubeRepository,
             IPlaylistRepository playlistRepository,
+            IOptimizationRepository optimizationRepository,
             IPlaylistTrackOrchestrator playlistTrackOrchestrator,
             IUserPlaylistOrchestrator userPlaylistOrchestrator,
-            IOptimizerClient optimizerClient,
             IMapper mapper)
         {
             _youTubeRepository = youTubeRepository;
             _playlistRepository = playlistRepository;
+            _optimizationRepository = optimizationRepository;
             _playlistTrackOrchestrator = playlistTrackOrchestrator;
             _userPlaylistOrchestrator = userPlaylistOrchestrator;
-            _optimizerClient = optimizerClient;
             _mapper = mapper;
         }
 
@@ -84,14 +88,24 @@ namespace YTMusicApi.Orchestrator.Playlist
             return updatedPlaylist;
         }
 
-        public async Task<OptimizedPlaylistResultDto> GetOptimizedTracksAsync(string playlistId, TimeSpan timeLimit, int? maxTracks, OptimizationAlgorithmType algorithm, double genreWeight, string? startTrackId)
+        public async Task<Guid> InitiateOptimizationAsync(string playlistId, Guid userId, TimeSpan timeLimit, int? maxTracks, OptimizationAlgorithmType algorithm, double genreWeight, string? startTrackId)
         {
             var sourceTracks = await _playlistTrackOrchestrator.GetTracksForPlaylistAsync(playlistId);
             if (sourceTracks == null || !sourceTracks.Any())
             {
                 throw new KeyNotFoundException("Source playlist is empty or not found.");
             }
-            
+             
+            var taskId = Guid.NewGuid();
+ 
+            var taskDto = new OptimizationTaskDto
+            {
+                TaskId = taskId,
+                UserId = userId,
+                PlaylistId = playlistId,
+                Status = OptimizationTaskStatus.Pending
+            };
+
             var optimizationSettingsDto = new OptimizationSettingsDto
             {
                 SourceTracks = _mapper.Map<List<TrackOptimizationDto>>(sourceTracks),
@@ -103,25 +117,24 @@ namespace YTMusicApi.Orchestrator.Playlist
                 StartTrackId = startTrackId
             };
 
-            var optimizationResult = await _optimizerClient.OptimizePlaylistAsync(optimizationSettingsDto);
-           
-            var trackDictionary = sourceTracks.ToDictionary(t => t.TrackId);
-            var optimizedTracks = new List<TrackDto>();
-
-            foreach (var trackId in optimizationResult.OrderedTrackIds)
+            var command = new OptimizePlaylistCommand
             {
-                if (trackDictionary.TryGetValue(trackId, out var track))
-                {
-                    optimizedTracks.Add(track);
-                }
-            }
-
-            return new OptimizedPlaylistResultDto()
-            {
-                Tracks = optimizedTracks,
-                TotalScore = optimizationResult.TotalScore,
-                ExecutionTime = optimizationResult.ExecutionTime
+                TaskId = taskId,
+                Settings = optimizationSettingsDto
             };
+
+            var outboxMessageDto = new OutboxMessageDto
+            {
+                Id = Guid.NewGuid(),
+                Type = nameof(OptimizePlaylistCommand),
+                Payload = JsonSerializer.Serialize(command),
+                Exchange = MessagingConstants.OptimizationExchange,
+                RoutingKey = MessagingConstants.OptimizeCommandRoutingKey
+            };
+
+            await _optimizationRepository.CreateTaskAndOutboxMessageAsync(taskDto, outboxMessageDto);
+ 
+            return taskId;
         }
         
         public async Task<PlaylistDto> PostOptimizedPlaylistAsync(Guid userId, string title, string channelTitle, List<string> trackIds, TimeSpan targetDuration, OptimizationAlgorithmType algorithm, double genreWeight)

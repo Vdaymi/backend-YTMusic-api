@@ -11,6 +11,8 @@ using YTMusicApi.Model.Track;
 using YTMusicApi.Model.PlaylistTrack;
 using YTMusicApi.Model.UserPlaylist;
 using YTMusicApi.Model.YouTube;
+using YTMusicApi.Model.Optimization;
+using YTMusicApi.Model.MessageBroker;
 using YTMusicApi.Orchestrator.Playlist;
 using YTMusicApi.Shared.Optimization;
 
@@ -20,9 +22,9 @@ namespace YTMusicApi.Orchestrator.Tests.Playlist
     {
         private readonly Mock<IYouTubeRepository> _youTubeRepositoryMock;
         private readonly Mock<IPlaylistRepository> _playlistRepositoryMock;
+        private readonly Mock<IOptimizationRepository> _optimizationRepositoryMock;
         private readonly Mock<IPlaylistTrackOrchestrator> _playlistTrackOrchestratorMock;
         private readonly Mock<IUserPlaylistOrchestrator> _userPlaylistOrchestratorMock;
-        private readonly Mock<IOptimizerClient> _optimizerClientMock;
         private readonly Mock<IMapper> _mapperMock;
         
         private readonly PlaylistOrchestrator _orchestrator;
@@ -31,17 +33,17 @@ namespace YTMusicApi.Orchestrator.Tests.Playlist
         {
             _youTubeRepositoryMock = new Mock<IYouTubeRepository>();
             _playlistRepositoryMock = new Mock<IPlaylistRepository>();
+            _optimizationRepositoryMock = new Mock<IOptimizationRepository>();
             _playlistTrackOrchestratorMock = new Mock<IPlaylistTrackOrchestrator>();
             _userPlaylistOrchestratorMock = new Mock<IUserPlaylistOrchestrator>();
-            _optimizerClientMock = new Mock<IOptimizerClient>();
             _mapperMock = new Mock<IMapper>();
 
             _orchestrator = new PlaylistOrchestrator(
                 _youTubeRepositoryMock.Object,
                 _playlistRepositoryMock.Object,
+                _optimizationRepositoryMock.Object,
                 _playlistTrackOrchestratorMock.Object,
                 _userPlaylistOrchestratorMock.Object,
-                _optimizerClientMock.Object,
                 _mapperMock.Object);
         }
 
@@ -158,27 +160,29 @@ namespace YTMusicApi.Orchestrator.Tests.Playlist
         }
 
         [Fact]
-        public async Task GetOptimizedTracksAsync_WhenSourcePlaylistIsEmpty_ThrowsKeyNotFoundException()
+        public async Task InitiateOptimizationAsync_WhenSourcePlaylistIsEmpty_ThrowsKeyNotFoundException()
         {
             // Arrange
             var playlistId = "PL_123";
+            var userId = Guid.NewGuid();
             _playlistTrackOrchestratorMock.Setup(x => x.GetTracksForPlaylistAsync(playlistId)).ReturnsAsync(new List<TrackDto>());
 
             // Act
-            Func<Task> act = async () => await _orchestrator.GetOptimizedTracksAsync(playlistId, TimeSpan.FromMinutes(30), 10, Shared.Optimization.OptimizationAlgorithmType.Greedy, 0.5, null);
+            Func<Task> act = async () => await _orchestrator.InitiateOptimizationAsync(playlistId, userId, TimeSpan.FromMinutes(30), 10, OptimizationAlgorithmType.Greedy, 0.5, null);
 
             // Assert
             await act.Should().ThrowAsync<KeyNotFoundException>()
                 .WithMessage("Source playlist is empty or not found.");
                 
-            _optimizerClientMock.Verify(x => x.OptimizePlaylistAsync(It.IsAny<OptimizationSettingsDto>()), Times.Never);
+            _optimizationRepositoryMock.Verify(x => x.CreateTaskAndOutboxMessageAsync(It.IsAny<OptimizationTaskDto>(), It.IsAny<OutboxMessageDto>()), Times.Never);
         }
 
         [Fact]
-        public async Task GetOptimizedTracksAsync_WhenValid_ReturnsOptimizedPlaylistResultDto()
+        public async Task InitiateOptimizationAsync_WhenValid_CreatesTaskAndMessageAndReturnsGuid()
         {
             // Arrange
             var playlistId = "PL_123";
+            var userId = Guid.NewGuid();
             var track1 = new TrackDto { TrackId = "T1", Title = "Track 1" };
             var track2 = new TrackDto { TrackId = "T2", Title = "Track 2" };
             var sourceTracks = new List<TrackDto> { track1, track2 };
@@ -187,29 +191,25 @@ namespace YTMusicApi.Orchestrator.Tests.Playlist
             var optTrack2 = new TrackOptimizationDto { TrackId = "T2" };
             var mappedTracks = new List<TrackOptimizationDto> { optTrack1, optTrack2 };
 
-            var optResponse = new OptimizationResponse
-            {
-                Success = true,
-                OrderedTrackIds = new List<string> { "T2", "T1" },
-                TotalScore = 150.5,
-                ExecutionTime = TimeSpan.FromMilliseconds(500)
-            };
-
             _playlistTrackOrchestratorMock.Setup(x => x.GetTracksForPlaylistAsync(playlistId)).ReturnsAsync(sourceTracks);
             _mapperMock.Setup(x => x.Map<List<TrackOptimizationDto>>(sourceTracks)).Returns(mappedTracks);
-            _optimizerClientMock.Setup(x => x.OptimizePlaylistAsync(It.IsAny<OptimizationSettingsDto>())).ReturnsAsync(optResponse);
 
             // Act
-            var result = await _orchestrator.GetOptimizedTracksAsync(playlistId, TimeSpan.FromMinutes(30), 10, OptimizationAlgorithmType.Greedy, 0.5, null);
+            var result = await _orchestrator.InitiateOptimizationAsync(playlistId, userId, TimeSpan.FromMinutes(30), 10, OptimizationAlgorithmType.Greedy, 0.5, null);
 
             // Assert
-            result.Should().NotBeNull();
-            result.TotalScore.Should().Be(optResponse.TotalScore);
-            result.ExecutionTime.Should().Be(optResponse.ExecutionTime);
+            result.Should().NotBeEmpty();
             
-            result.Tracks.Should().HaveCount(2);
-            result.Tracks[0].TrackId.Should().Be("T2");
-            result.Tracks[1].TrackId.Should().Be("T1");
+            _optimizationRepositoryMock.Verify(x => x.CreateTaskAndOutboxMessageAsync(
+                It.Is<OptimizationTaskDto>(t => 
+                    t.TaskId == result && 
+                    t.UserId == userId && 
+                    t.PlaylistId == playlistId && 
+                    t.Status == OptimizationTaskStatus.Pending),
+                It.Is<OutboxMessageDto>(m => 
+                    m.Type == "OptimizePlaylistCommand" && 
+                    m.Payload.Contains(result.ToString()))
+            ), Times.Once);
         }
 
         [Fact]
