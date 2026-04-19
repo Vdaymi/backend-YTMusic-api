@@ -19,7 +19,7 @@ public class OptimizePlaylistAsyncTests : BaseTest
     }
 
     [Fact]
-    public async Task OptimizePlaylistAsync_WithValidData_ReturnsOkAndOptimizedResultDto()
+    public async Task OptimizePlaylistAsync_WithValidData_ReturnsAcceptedAndTaskId()
     {
         // Arrange
         await SeedUserAsync();
@@ -39,31 +39,18 @@ public class OptimizePlaylistAsyncTests : BaseTest
             GenreWeight = 0.5
         };
 
-        var expectedResponse = new OptimizationResponse
-        {
-            Success = true,
-            OrderedTrackIds = new List<string> { track2.TrackId, track1.TrackId },
-            TotalScore = 150,
-            ExecutionTime = TimeSpan.FromMilliseconds(450)
-        };
-
-        MockOptimizerClient(expectedResponse);
-
         // Act
         var response = await HttpClient.PostAsJsonAsync($"{BaseRoute}/{existingPlaylist.PlaylistId}/optimize", requestSettings);
 
         // Assert
-        response.StatusCode.Should().Be(HttpStatusCode.OK);
+        response.StatusCode.Should().Be(HttpStatusCode.Accepted);
 
-        var resultDto = JsonConvert.DeserializeObject<OptimizedPlaylistResultDto>(await response.Content.ReadAsStringAsync());
+        var content = await response.Content.ReadAsStringAsync();
+        var result = JsonConvert.DeserializeAnonymousType(content, new { TaskId = Guid.Empty, Message = "" });
         
-        resultDto.Should().NotBeNull();
-        resultDto!.TotalScore.Should().Be(expectedResponse.TotalScore);
-        resultDto.ExecutionTime.Should().Be(expectedResponse.ExecutionTime);
-        
-        resultDto.Tracks.Should().HaveCount(2);
-        resultDto.Tracks[0].TrackId.Should().Be(track2.TrackId);
-        resultDto.Tracks[1].TrackId.Should().Be(track1.TrackId);
+        result.Should().NotBeNull();
+        result!.TaskId.Should().NotBeEmpty();
+        result.Message.Should().Be("Optimization task has been successfully queued.");
     }
 
     [Fact]

@@ -13,15 +13,19 @@ services:
       - ConnectionStrings__DefaultConnection=${DB_CONNECTION_STRING}
       - YouTube__ApiKey=${YOUTUBE_API_KEY}
       - JwtOptions__SecretKey=${JWT_SECRET_KEY}
-      - OptimizerSettings__BaseUrl=http://optimizer:8080
       - ClientSettings__ClientBaseUrl=${CLIENT_BASE_URL}
       - EmailSettings__SmtpPassword=${SMTP_PASSWORD}
       - EmailSettings__SenderEmail=${SMTP_SENDER_EMAIL}
       - EmailSettings__SmtpUsername=${SMTP_USERNAME}
+      - RabbitMq__HostName=rabbitmq
+      - RabbitMq__UserName=guest
+      - RabbitMq__Password=guest
+      - Redis__ConnectionString=redis:6379
     networks:
       - yt-music-api-net
     depends_on:
-      - optimizer
+      rabbitmq:
+        condition: service_healthy
     restart: on-failure
   optimizer:
     container_name: yt-music-optimizer
@@ -30,7 +34,37 @@ services:
       dockerfile: YTMusicApi.Optimizer/Dockerfile
     networks:
       - yt-music-api-net
+    environment:
+      - RabbitMq__HostName=rabbitmq
+      - RabbitMq__UserName=guest
+      - RabbitMq__Password=guest
+    depends_on:
+      rabbitmq:
+        condition: service_healthy
     restart: on-failure
+  rabbitmq:
+    container_name: yt-music-rabbitmq
+    image: rabbitmq:3.13-management
+    ports:
+      - "5672:5672"
+      - "15672:15672"
+    environment:
+      - RABBITMQ_DEFAULT_USER=guest
+      - RABBITMQ_DEFAULT_PASS=guest
+    networks:
+      - yt-music-api-net
+    healthcheck:
+      test: ["CMD", "rabbitmq-diagnostics", "-q", "ping"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+  redis:
+    container_name: yt-music-redis
+    image: redis:7.2-alpine
+    ports:
+      - "6379:6379"
+    networks:
+      - yt-music-api-net
 
 networks:
   yt-music-api-net:

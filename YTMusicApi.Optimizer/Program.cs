@@ -1,5 +1,6 @@
 using YTMusicApi.Optimizer.Optimization;
 using YTMusicApi.Optimizer.Optimization.Algorithm;
+using YTMusicApi.Optimizer.MessageBroker;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -13,6 +14,10 @@ builder.Services.AddScoped<IOptimizationAlgorithm, AntColonyOptimizationAlgorith
 
 builder.Services.AddScoped<IScoreEvaluator, ScoreEvaluator>();
 builder.Services.AddScoped<IOptimizationOrchestrator, OptimizationOrchestrator>();
+
+builder.Services.Configure<RabbitMqSettings>(builder.Configuration.GetSection("RabbitMq"));
+builder.Services.AddHostedService<OptimizationCommandConsumer>();
+
 
 builder.Services.AddHealthChecks();
 
